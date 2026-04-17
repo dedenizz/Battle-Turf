@@ -16,7 +16,45 @@
         <p id="status-text">Attempting to connect to Firebase...</p>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Your exact Firebase keys
+        const firebaseConfig = {
+          apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
+          authDomain: "gameoftame-7c63f.firebaseapp.com",
+          projectId: "gameoftame-7c63f",
+          storageBucket: "gameoftame-7c63f.firebasestorage.app",
+          messagingSenderId: "829948418870",
+          appId: "1:829948418870:web:02373ec1d4b170049fb197"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function testConnection() {
+            try {
+                const docRef = await addDoc(collection(db, "players"), {
+                    username: "TestPlayer01",
+                    coins: 500,
+                    inventory: ["Starter_Core"]
+                });
+                
+                document.getElementById("status-text").innerHTML = `
+                    <span style="color: #00ff00;">CONNECTION SUCCESSFUL!</span><br><br>
+                    Player created with ID: ${docRef.id}
+                `;
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                document.getElementById("status-text").innerHTML = `
+                    <span style="color: #ff0000;">CONNECTION FAILED!</span><br><br>
+                    Check the console for errors. Did you start the database in test mode?
+                `;
+            }
+        }
+
+        testConnection();
+    </script>
 </body>
 </html>

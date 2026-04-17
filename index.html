@@ -3,22 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game of Tame</title>
+    <title>Turf Wars - Abstract</title>
     <style>
-        body { background-color: #121212; color: #00ffcc; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .container { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        body { background-color: #0d0d0d; color: #ffffff; font-family: monospace; display: flex; justify-content: center; margin: 0; padding-top: 50px; }
+        .app-container { width: 100%; max-width: 400px; padding: 20px; }
+        
+        /* The Screens */
+        #login-screen, #dashboard-screen { display: none; text-align: center; }
+        .active-screen { display: block !important; }
+
+        /* Minimalist UI */
+        h1 { font-size: 2rem; letter-spacing: 3px; color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); }
+        .input-box { background: #1a1a1a; border: 1px solid #333; color: #00ffcc; padding: 15px; font-size: 1.2rem; width: 80%; border-radius: 5px; margin-bottom: 20px; text-align: center; }
+        .input-box:focus { outline: none; border-color: #00ffcc; }
+        .btn { background: transparent; color: #00ffcc; border: 2px solid #00ffcc; padding: 15px 30px; font-size: 1.2rem; cursor: pointer; transition: 0.3s; font-family: monospace; text-transform: uppercase; border-radius: 5px; }
+        .btn:hover { background: #00ffcc; color: #000; }
+        
+        .status { margin-top: 20px; color: #888; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <div id="app-container" class="container">
-        <h1>Game of Tame Backend</h1>
-        <p id="status-text">Attempting to connect to Firebase...</p>
+    <div class="app-container">
+        
+        <div id="login-screen">
+            <h1>INITIALIZE</h1>
+            <p>Enter your alias to enter the grid.</p>
+            <input type="text" id="username-input" class="input-box" placeholder="USERNAME" maxlength="12">
+            <br>
+            <button class="btn" onclick="createAccount()">Connect</button>
+            <p id="login-status" class="status"></p>
+        </div>
+
+        <div id="dashboard-screen">
+            <h1>SYSTEM ACCESS</h1>
+            <p>Welcome, <span id="display-name" style="color: #00ffcc; font-weight: bold;"></span>.</p>
+            <p>Your unique ID: <span id="display-id" style="font-size: 0.8rem; color: #666;"></span></p>
+            
+            <div style="margin-top: 40px; padding: 20px; border: 1px dashed #333;">
+                <h3>Your Inventory</h3>
+                <p>1x [Basic Core]</p>
+            </div>
+            
+            <button class="btn" style="margin-top: 30px; border-color: #ff3366; color: #ff3366;" onclick="logout()">Disconnect (Log Out)</button>
+        </div>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // Your exact Firebase keys
         const firebaseConfig = {
@@ -33,28 +67,65 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        async function testConnection() {
+        // Make functions available to the HTML buttons
+        window.createAccount = async function() {
+            const username = document.getElementById("username-input").value.trim();
+            const statusText = document.getElementById("login-status");
+
+            if (username.length < 3) {
+                statusText.innerText = "Alias must be at least 3 characters.";
+                return;
+            }
+
+            statusText.innerText = "Syncing with grid...";
+
             try {
+                // Save the new player to your Firebase database
                 const docRef = await addDoc(collection(db, "players"), {
-                    username: "TestPlayer01",
-                    coins: 500,
-                    inventory: ["Starter_Core"]
+                    username: username,
+                    coins: 100,
+                    inventory: ["Basic Core"],
+                    joinedAt: new Date().toISOString()
                 });
                 
-                document.getElementById("status-text").innerHTML = `
-                    <span style="color: #00ff00;">CONNECTION SUCCESSFUL!</span><br><br>
-                    Player created with ID: ${docRef.id}
-                `;
+                // Save their ID to their browser so they stay logged in!
+                localStorage.setItem("playerID", docRef.id);
+                localStorage.setItem("playerName", username);
+                
+                loadDashboard();
             } catch (e) {
-                console.error("Error adding document: ", e);
-                document.getElementById("status-text").innerHTML = `
-                    <span style="color: #ff0000;">CONNECTION FAILED!</span><br><br>
-                    Check the console for errors. Did you start the database in test mode?
-                `;
+                console.error(e);
+                statusText.innerText = "Connection failed. Try again.";
+            }
+        };
+
+        window.logout = function() {
+            localStorage.removeItem("playerID");
+            localStorage.removeItem("playerName");
+            checkLoginState();
+        };
+
+        function loadDashboard() {
+            document.getElementById("login-screen").classList.remove("active-screen");
+            document.getElementById("dashboard-screen").classList.add("active-screen");
+            
+            document.getElementById("display-name").innerText = localStorage.getItem("playerName");
+            document.getElementById("display-id").innerText = localStorage.getItem("playerID");
+        }
+
+        // Check if the player is already logged in when they open the app
+        function checkLoginState() {
+            const savedID = localStorage.getItem("playerID");
+            if (savedID) {
+                loadDashboard();
+            } else {
+                document.getElementById("login-screen").classList.add("active-screen");
+                document.getElementById("dashboard-screen").classList.remove("active-screen");
             }
         }
 
-        testConnection();
+        // Run the check immediately
+        checkLoginState();
     </script>
 </body>
 </html>

@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turf Wars - Abstract</title>
+    <title>Turf Wars - Core</title>
     <style>
-        body { background-color: #0d0d0d; color: #ffffff; font-family: monospace; display: flex; justify-content: center; margin: 0; padding-top: 50px; }
+        body { background-color: #0d0d0d; color: #ffffff; font-family: monospace; display: flex; justify-content: center; margin: 0; padding-top: 20px; }
         .app-container { width: 100%; max-width: 400px; padding: 20px; }
         
-        /* The Screens */
         #login-screen, #dashboard-screen { display: none; text-align: center; }
         .active-screen { display: block !important; }
 
-        /* Minimalist UI */
-        h1 { font-size: 2rem; letter-spacing: 3px; color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); }
-        .input-box { background: #1a1a1a; border: 1px solid #333; color: #00ffcc; padding: 15px; font-size: 1.2rem; width: 80%; border-radius: 5px; margin-bottom: 20px; text-align: center; }
+        h1 { font-size: 1.8rem; letter-spacing: 2px; color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.3); }
+        .input-box { background: #1a1a1a; border: 1px solid #333; color: #00ffcc; padding: 15px; font-size: 1.2rem; width: 80%; border-radius: 5px; margin-bottom: 20px; text-align: center; font-family: monospace; }
         .input-box:focus { outline: none; border-color: #00ffcc; }
-        .btn { background: transparent; color: #00ffcc; border: 2px solid #00ffcc; padding: 15px 30px; font-size: 1.2rem; cursor: pointer; transition: 0.3s; font-family: monospace; text-transform: uppercase; border-radius: 5px; }
+        .btn { background: #111; color: #00ffcc; border: 1px solid #00ffcc; padding: 15px 30px; font-size: 1rem; cursor: pointer; transition: 0.3s; font-family: monospace; text-transform: uppercase; border-radius: 5px; width: 80%; margin-bottom: 10px;}
         .btn:hover { background: #00ffcc; color: #000; }
         
-        .status { margin-top: 20px; color: #888; font-size: 0.9rem; }
+        /* New Game UI */
+        .radar-box { background: #151515; border: 1px solid #333; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .live-pin { font-size: 4rem; color: #ff3366; font-weight: bold; text-shadow: 0 0 15px rgba(255, 51, 102, 0.4); margin: 10px 0; letter-spacing: 5px;}
+        .hunter-box { background: #151515; border: 1px solid #333; padding: 20px; border-radius: 8px; margin-top: 20px; border-color: #00ffcc; }
     </style>
 </head>
 <body>
@@ -27,34 +28,39 @@
     <div class="app-container">
         
         <div id="login-screen">
-            <h1>INITIALIZE</h1>
-            <p>Enter your alias to enter the grid.</p>
-            <input type="text" id="username-input" class="input-box" placeholder="USERNAME" maxlength="12">
-            <br>
+            <h1>SYSTEM LOGIN</h1>
+            <input type="text" id="username-input" class="input-box" placeholder="ENTER ALIAS" maxlength="12">
             <button class="btn" onclick="createAccount()">Connect</button>
-            <p id="login-status" class="status"></p>
+            <p id="login-status" style="color: #888; font-size: 0.9rem;"></p>
         </div>
 
         <div id="dashboard-screen">
-            <h1>SYSTEM ACCESS</h1>
-            <p>Welcome, <span id="display-name" style="color: #00ffcc; font-weight: bold;"></span>.</p>
-            <p>Your unique ID: <span id="display-id" style="font-size: 0.8rem; color: #666;"></span></p>
+            <h1>TURF WARS</h1>
+            <p>Agent: <span id="display-name" style="color: #00ffcc; font-weight: bold;"></span></p>
             
-            <div style="margin-top: 40px; padding: 20px; border: 1px dashed #333;">
-                <h3>Your Inventory</h3>
-                <p>1x [Basic Core]</p>
+            <div class="radar-box">
+                <p style="color: #888; font-size: 0.8rem; margin: 0;">YOUR LIVE BEACON</p>
+                <div class="live-pin" id="my-pin">---</div>
+                <p style="color: #888; font-size: 0.8rem; margin: 0;">Refreshes in: <span id="timer" style="color: #fff;">30</span>s</p>
+            </div>
+
+            <div class="hunter-box">
+                <p style="color: #888; font-size: 0.8rem; margin: 0 0 15px 0;">HUNT A TARGET</p>
+                <input type="number" id="target-pin-input" class="input-box" placeholder="ENTER 3-DIGIT PIN" style="width: 60%; font-size: 1.5rem;" max="999">
+                <button class="btn" onclick="huntTarget()">INITIATE HACK</button>
+                <p id="hunt-status" style="color: #ff3366; font-size: 0.9rem; margin-top: 10px;"></p>
             </div>
             
-            <button class="btn" style="margin-top: 30px; border-color: #ff3366; color: #ff3366;" onclick="logout()">Disconnect (Log Out)</button>
+            <button class="btn" style="border-color: #444; color: #888; margin-top: 30px;" onclick="logout()">Disconnect</button>
         </div>
 
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        // We are importing powerful database queries now (query, where, getDocs, updateDoc)
+        import { getFirestore, collection, addDoc, doc, updateDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Your exact Firebase keys
         const firebaseConfig = {
           apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
           authDomain: "gameoftame-7c63f.firebaseapp.com",
@@ -67,64 +73,128 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Make functions available to the HTML buttons
+        let pinInterval;
+        let countdownInterval;
+
         window.createAccount = async function() {
             const username = document.getElementById("username-input").value.trim();
-            const statusText = document.getElementById("login-status");
+            if (username.length < 3) return;
 
-            if (username.length < 3) {
-                statusText.innerText = "Alias must be at least 3 characters.";
-                return;
-            }
-
-            statusText.innerText = "Syncing with grid...";
+            document.getElementById("login-status").innerText = "Connecting...";
 
             try {
-                // Save the new player to your Firebase database
                 const docRef = await addDoc(collection(db, "players"), {
                     username: username,
-                    coins: 100,
-                    inventory: ["Basic Core"],
-                    joinedAt: new Date().toISOString()
+                    currentPin: "000", // Start with a blank pin
+                    inventory: ["Core_Alpha"]
                 });
-                
-                // Save their ID to their browser so they stay logged in!
                 localStorage.setItem("playerID", docRef.id);
                 localStorage.setItem("playerName", username);
-                
-                loadDashboard();
+                checkLoginState();
             } catch (e) {
                 console.error(e);
-                statusText.innerText = "Connection failed. Try again.";
+                document.getElementById("login-status").innerText = "Connection failed.";
             }
         };
 
         window.logout = function() {
-            localStorage.removeItem("playerID");
-            localStorage.removeItem("playerName");
+            localStorage.clear();
+            clearInterval(pinInterval);
+            clearInterval(countdownInterval);
             checkLoginState();
         };
 
-        function loadDashboard() {
-            document.getElementById("login-screen").classList.remove("active-screen");
-            document.getElementById("dashboard-screen").classList.add("active-screen");
+        // --- THE ACTUAL GAME ENGINE START --- //
+
+        // 1. Generate a new PIN and save it to Firebase
+        async function updateLivePin() {
+            const myId = localStorage.getItem("playerID");
+            if (!myId) return;
+
+            // Generate random 3 digits (100-999)
+            const newPin = Math.floor(100 + Math.random() * 900).toString();
+            document.getElementById("my-pin").innerText = newPin;
+
+            // Push the new PIN to this player's file in the database
+            const playerRef = doc(db, "players", myId);
+            await updateDoc(playerRef, { currentPin: newPin });
             
-            document.getElementById("display-name").innerText = localStorage.getItem("playerName");
-            document.getElementById("display-id").innerText = localStorage.getItem("playerID");
+            startCountdown();
         }
 
-        // Check if the player is already logged in when they open the app
+        // 2. The Visual Timer
+        function startCountdown() {
+            let timeLeft = 30;
+            clearInterval(countdownInterval);
+            document.getElementById("timer").innerText = timeLeft;
+            
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    updateLivePin(); // Refresh PIN when timer hits 0
+                }
+            }, 1000);
+        }
+
+        // 3. The Radar/Hunter Mechanic (Searching the Database)
+        window.huntTarget = async function() {
+            const enteredPin = document.getElementById("target-pin-input").value;
+            const statusText = document.getElementById("hunt-status");
+            const myId = localStorage.getItem("playerID");
+
+            if (enteredPin.length !== 3) {
+                statusText.innerText = "PIN must be 3 digits.";
+                return;
+            }
+
+            statusText.innerText = "Scanning grid...";
+
+            try {
+                // Query the database: "Find any player whose currentPin matches what I typed"
+                const q = query(collection(db, "players"), where("currentPin", "==", enteredPin));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    statusText.innerText = "Target lost or PIN expired.";
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        const targetData = doc.data();
+                        
+                        // Stop you from battling yourself
+                        if (doc.id === myId) {
+                            statusText.innerText = "You cannot hack yourself.";
+                            return;
+                        }
+
+                        // BOOM! Match found. 
+                        statusText.style.color = "#00ffcc";
+                        statusText.innerText = `TARGET ACQUIRED: ${targetData.username}!\nInitiating Battle Protocol...`;
+                        
+                        // This is where we will load the battle screen later
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "Error scanning grid.";
+            }
+        };
+
         function checkLoginState() {
             const savedID = localStorage.getItem("playerID");
             if (savedID) {
-                loadDashboard();
+                document.getElementById("login-screen").classList.remove("active-screen");
+                document.getElementById("dashboard-screen").classList.add("active-screen");
+                document.getElementById("display-name").innerText = localStorage.getItem("playerName");
+                
+                // Start the live PIN loop as soon as they log in
+                updateLivePin(); 
             } else {
                 document.getElementById("login-screen").classList.add("active-screen");
                 document.getElementById("dashboard-screen").classList.remove("active-screen");
             }
         }
 
-        // Run the check immediately
         checkLoginState();
     </script>
 </body>

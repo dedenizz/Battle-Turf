@@ -2,158 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>School Battle Turf</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game of Tame</title>
     <style>
-        /* This CSS makes it look like a sleek, dark-mode mobile app */
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-        }
-        .app-container {
-            width: 100%;
-            max-width: 500px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .user-info { font-size: 1.2rem; font-weight: bold; }
-        .coins { color: #ffd700; font-weight: bold; }
-        
-        /* The Global Manhunt Warning */
-        .alert-banner {
-            background: linear-gradient(90deg, #ff416c, #ff4b2b);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(255, 75, 43, 0.4);
-        }
-
-        /* The "Walking Gym" Target */
-        .pin-section {
-            background-color: #1e1e1e;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 30px;
-            border: 1px solid #333;
-        }
-        .pin-title { color: #888; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; }
-        .pin-display {
-            font-size: 5rem;
-            font-weight: 900;
-            color: #00ffcc;
-            margin: 10px 0;
-            text-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
-            letter-spacing: 5px;
-        }
-        .pin-timer { color: #aaa; font-size: 0.8rem; }
-
-        /* The Attack Interface */
-        .challenge-section { text-align: center; }
-        .challenge-title { font-size: 1.2rem; margin-bottom: 15px; font-weight: bold; }
-        .pin-input {
-            width: 150px;
-            font-size: 2rem;
-            text-align: center;
-            padding: 10px;
-            border-radius: 10px;
-            border: 2px solid #444;
-            background-color: #000;
-            color: #fff;
-            margin-bottom: 15px;
-            letter-spacing: 5px;
-        }
-        .pin-input:focus { outline: none; border-color: #00ffcc; }
-        .challenge-btn {
-            background: linear-gradient(90deg, #00c6ff, #0072ff);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            width: 100%;
-            text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
-        }
-        .challenge-btn:active { transform: scale(0.98); }
+        body { background-color: #121212; color: #00ffcc; font-family: sans-serif; text-align: center; padding-top: 50px; }
+        .container { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <div class="header">
-            <div class="user-info">👤 ShadowHunter99</div>
-            <div class="coins">🪙 1,250 Coins</div>
-        </div>
-
-        <div class="alert-banner">
-            ⚠️ WARNING: "Alex M." currently holds the Juggernaut Dragon. Hunt them down!
-        </div>
-
-        <div class="pin-section">
-            <div class="pin-title">Your Live Battle PIN</div>
-            <div class="pin-display" id="myPin">742</div>
-            <div class="pin-timer">Changes in: <span id="countdown">30</span>s</div>
-        </div>
-
-        <div class="challenge-section">
-            <div class="challenge-title">Found a Target? Enter Their PIN:</div>
-            <input type="number" class="pin-input" id="targetPin" placeholder="---" max="999" oninput="if(this.value.length > 3) this.value = this.value.slice(0,3);" />
-            <button class="challenge-btn" onclick="initiateBattle()">Initiate Battle</button>
-        </div>
+    <div id="app-container" class="container">
+        <h1>Game of Tame Backend</h1>
+        <p id="status-text">Attempting to connect to Firebase...</p>
     </div>
 
-    <script>
-        // JavaScript to make the app feel alive and track the timer
-        let timeLeft = 30;
-        
-        function generateNewPin() {
-            // Generate a random 3-digit number between 100 and 999
-            const newPin = Math.floor(100 + Math.random() * 900);
-            document.getElementById('myPin').innerText = newPin;
-            timeLeft = 30; // Reset timer back to 30
-        }
+    <script type="module" src="app.js"></script>
 
-        // Countdown timer logic running every 1 second
-        setInterval(() => {
-            timeLeft--;
-            document.getElementById('countdown').innerText = timeLeft;
-            
-            // When the timer hits zero, refresh the PIN so players can't cheat
-            if (timeLeft <= 0) {
-                generateNewPin();
-            }
-        }, 1000);
-
-        // Fake battle logic for the prototype
-        function initiateBattle() {
-            const enteredPin = document.getElementById('targetPin').value;
-            
-            if (enteredPin.length === 3) {
-                // If this were the real game, this would connect to your database and load the battle screen
-                alert("MATCH FOUND! Initiating PvP battle for PIN: " + enteredPin + "\n\nPrepare your monsters...");
-                document.getElementById('targetPin').value = ""; // Clear input after challenging
-            } else {
-                alert("You need to physically look at someone's screen and enter their 3-digit PIN first!");
-            }
-        }
-    </script>
 </body>
 </html>

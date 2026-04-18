@@ -44,12 +44,12 @@
 
         .hp-bar-bg { width: 100%; height: 12px; background: #111; border: 1px solid #444; margin-top: 8px; position: relative; }
         .hp-bar-fill { height: 100%; width: 100%; transition: width 0.3s ease-out; }
-        .enemy-hud .hp-bar-fill { background: linear-gradient(90deg, #800, var(--magenta)); width: 85%; }
+        .enemy-hud .hp-bar-fill { background: linear-gradient(90deg, #800, var(--magenta)); width: 100%; }
         .player-hud .hp-bar-fill { background: linear-gradient(90deg, #004455, var(--cyan)); width: 100%; }
 
         .hp-text { position: absolute; right: 0; top: -20px; font-size: 0.9rem; color: #aaa; }
 
-        /* Hologram Entities (Placeholders for your future art) */
+        /* Hologram Entities */
         .hologram-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
         
         .holo { position: absolute; width: 150px; height: 150px; display: flex; justify-content: center; align-items: center; }
@@ -83,8 +83,9 @@
 
         .combat-log {
             flex: 1; padding: 20px; border-right: 1px solid #333; overflow-y: auto; color: #888;
+            display: flex; flex-direction: column; gap: 5px;
         }
-        .log-entry { margin-bottom: 10px; }
+        .log-entry { margin-bottom: 5px; }
         .log-entry.system { color: #ffaa00; }
         .log-entry.damage { color: var(--magenta); }
 
@@ -119,10 +120,10 @@
     <div class="arena">
         
         <div class="hud-box enemy-hud">
-            <div class="entity-name">MECHA_REX <span style="font-size: 0.8rem; color: #666;">[HOST_DEFENDER]</span></div>
+            <div class="entity-name">MECHA_REX <span style="font-size: 0.8rem; color: #666;">[HOST]</span></div>
             <div class="hp-bar-bg">
                 <div class="hp-bar-fill"></div>
-                <div class="hp-text">2550 / 3000</div>
+                <div class="hp-text">3000 / 3000</div>
             </div>
         </div>
 
@@ -158,5 +159,137 @@
         </div>
     </div>
 
+    <script>
+        // Game State
+        const player = { name: "VOID_DRAGON", maxHp: 4200, hp: 4200, baseAttack: 450, isDefending: false };
+        const enemy = { name: "MECHA_REX", maxHp: 3000, hp: 3000, baseAttack: 350 };
+        let isPlayerTurn = true;
+        let battleOver = false;
+
+        // UI Elements
+        const logBox = document.querySelector('.combat-log');
+        const playerHpBar = document.querySelector('.player-hud .hp-bar-fill');
+        const playerHpText = document.querySelector('.player-hud .hp-text');
+        const enemyHpBar = document.querySelector('.enemy-hud .hp-bar-fill');
+        const enemyHpText = document.querySelector('.enemy-hud .hp-text');
+        const actionButtons = document.querySelectorAll('.btn-action');
+
+        // Functions
+        function writeLog(message, type = "") {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerText = `> ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function updateUI() {
+            const pPercent = Math.max(0, (player.hp / player.maxHp) * 100);
+            const ePercent = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
+            playerHpBar.style.width = pPercent + '%';
+            playerHpText.innerText = `${Math.floor(player.hp)} / ${player.maxHp}`;
+            enemyHpBar.style.width = ePercent + '%';
+            enemyHpText.innerText = `${Math.floor(enemy.hp)} / ${enemy.maxHp}`;
+        }
+
+        function calculateDamage(baseDmg, isTargetDefending) {
+            const variance = 0.85 + (Math.random() * 0.3);
+            let finalDmg = baseDmg * variance;
+            if (isTargetDefending) finalDmg *= 0.5;
+            const isCrit = Math.random() < 0.1;
+            if (isCrit) finalDmg *= 1.5;
+            return { damage: Math.floor(finalDmg), isCrit };
+        }
+
+        function checkWinCondition() {
+            if (player.hp <= 0) {
+                writeLog("CRITICAL FAILURE. CONNECTION LOST.", "damage");
+                battleOver = true;
+                disableButtons();
+                return true;
+            }
+            if (enemy.hp <= 0) {
+                writeLog("HOST DEFEATED. EXTRACTING DATA CORE...", "system");
+                battleOver = true;
+                disableButtons();
+                return true;
+            }
+            return false;
+        }
+
+        function disableButtons(disable = true) {
+            actionButtons.forEach(btn => {
+                btn.style.opacity = disable ? "0.3" : "1";
+                btn.style.pointerEvents = disable ? "none" : "auto";
+            });
+        }
+
+        function enemyTurn() {
+            if (battleOver) return;
+            writeLog(`${enemy.name} is calculating counter-measure...`);
+            setTimeout(() => {
+                const hit = calculateDamage(enemy.baseAttack, player.isDefending);
+                player.hp -= hit.damage;
+                let msg = `${enemy.name} fires plasma cannon for ${hit.damage} DMG!`;
+                if (hit.isCrit) msg = `CRITICAL ALERT! ` + msg;
+                if (player.isDefending) msg += ` (Deflected)`;
+                writeLog(msg, "damage");
+                
+                document.body.style.transform = "translate(5px, 5px)";
+                setTimeout(() => document.body.style.transform = "none", 100);
+
+                updateUI();
+                player.isDefending = false;
+
+                if (!checkWinCondition()) {
+                    isPlayerTurn = true;
+                    disableButtons(false);
+                    writeLog("Awaiting your command...");
+                }
+            }, 1500);
+        }
+
+        function executeAction(actionType) {
+            if (!isPlayerTurn || battleOver) return;
+            isPlayerTurn = false;
+            disableButtons(true);
+
+            if (actionType === 'attack') {
+                const hit = calculateDamage(player.baseAttack, false);
+                enemy.hp -= hit.damage;
+                let msg = `You executed [STRIKE] for ${hit.damage} DMG.`;
+                if (hit.isCrit) msg = `CRITICAL HIT! ` + msg;
+                writeLog(msg, "system");
+            } else if (actionType === 'special') {
+                if (Math.random() > 0.3) {
+                    const hit = calculateDamage(player.baseAttack * 2, false);
+                    enemy.hp -= hit.damage;
+                    writeLog(`[EMP OVERLOAD] successful! Massive ${hit.damage} DMG.`, "system");
+                } else {
+                    writeLog(`[EMP OVERLOAD] failed to connect. Target evaded.`, "damage");
+                }
+            } else if (actionType === 'defend') {
+                player.isDefending = true;
+                writeLog(`[FIREWALL] deployed. Incoming damage reduced for next turn.`, "system");
+            }
+
+            updateUI();
+            if (!checkWinCondition()) enemyTurn();
+        }
+
+        // Event Listeners
+        actionButtons[0].onclick = () => executeAction('attack');
+        actionButtons[1].onclick = () => executeAction('special');
+        actionButtons[2].onclick = () => executeAction('defend');
+        actionButtons[3].onclick = () => {
+            if (battleOver) return;
+            writeLog("Forced disconnection. Coward.", "damage");
+            battleOver = true;
+            disableButtons();
+        };
+
+        // Boot up
+        updateUI();
+    </script>
 </body>
 </html>

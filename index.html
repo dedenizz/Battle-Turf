@@ -163,14 +163,17 @@
         ];
 
         let oyuncuEnvanteri = []; // Bellek
-
-        // --- 1. GERÇEK KİMLİK DOĞRULAMA (LOGİN) ---
+// --- 1. GERÇEK KİMLİK DOĞRULAMA (PİN KORUMALI) ---
         window.hesapOlustur = async function() {
             const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();
+            const pin = document.getElementById("kullanici-pin").value.trim();
             const durum = document.getElementById("giris-durum");
 
             if (kullaniciAdi.length < 3) {
                 durum.innerText = "İsim en az 3 harf olmalı."; return;
+            }
+            if (pin.length !== 4 || isNaN(pin)) {
+                durum.innerText = "PIN 4 haneli bir sayı olmalıdır."; return;
             }
 
             durum.style.color = "#8a8d98";
@@ -182,17 +185,28 @@
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
-                    // HESAP VAR
+                    // HESAP VAR - PIN KONTROLÜ YAP
                     const playerData = querySnapshot.docs[0];
-                    localStorage.setItem("oyuncuID", playerData.id);
-                    localStorage.setItem("oyuncuIsim", playerData.data().isim);
-                    durum.style.color = "#00ffcc";
-                    durum.innerText = "Hesap bulundu. Giriş yapılıyor...";
+                    const dbPin = playerData.data().pin; // Veritabanındaki PIN'i çek
+
+                    if (dbPin === pin) {
+                        // Şifre Doğru!
+                        localStorage.setItem("oyuncuID", playerData.id);
+                        localStorage.setItem("oyuncuIsim", playerData.data().isim);
+                        durum.style.color = "#00ffcc";
+                        durum.innerText = "Şifre doğru. Giriş yapılıyor...";
+                        setTimeout(() => { sistemiBaslat(); }, 1000);
+                    } else {
+                        // Şifre Yanlış! Girişi Reddet.
+                        durum.style.color = "#ff3366";
+                        durum.innerText = "Hatalı PIN!";
+                    }
                 } else {
-                    // HESAP YOK - OLUŞTUR
+                    // HESAP YOK - YENİ OLUŞTUR VE PIN'İ KAYDET
                     durum.innerText = "Yeni hesap oluşturuluyor...";
                     const docRef = await addDoc(collection(db, "players"), {
                         isim: kullaniciAdi,
+                        pin: pin, // Oyuncunun belirlediği PIN'i veritabanına kaydet
                         seviye: 1,
                         kapasite: 50,
                         envanter: [ { isim: "Başlangıç Çekirdeği", nadirlik: "Yaygın", renk: "#aaa" } ]
@@ -201,8 +215,8 @@
                     localStorage.setItem("oyuncuIsim", kullaniciAdi);
                     durum.style.color = "#00ffcc";
                     durum.innerText = "Kayıt başarılı. Yönlendiriliyor...";
+                    setTimeout(() => { sistemiBaslat(); }, 1000);
                 }
-                setTimeout(() => { sistemiBaslat(); }, 1000);
             } catch (e) {
                 console.error(e);
                 durum.style.color = "#ff3366";

@@ -10,7 +10,7 @@
         :root {
             --arka-plan: #0f1015;
             --panel: #1a1c23;
-            --vurgu-renk: #00ffcc; /* Parlak neon yeşil/mavi */
+            --vurgu-renk: #00ffcc;
             --kirmizi-alarm: #ff3366;
             --metin: #ffffff;
             --metin-soluk: #8a8d98;
@@ -31,20 +31,19 @@
             justify-content: center; align-items: center;
         }
         .giris-kutu { background: var(--panel); padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #2a2c35; }
-        .input-text { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 1.2rem; text-align: center; outline: none; font-family: 'Roboto Mono', monospace; }
+        .input-text { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 1.2rem; text-align: center; outline: none; font-family: 'Roboto Mono', monospace; text-transform: lowercase; }
         .input-text:focus { border-color: var(--vurgu-renk); }
         .btn { background: var(--metin); color: #000; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: 900; border-radius: 10px; cursor: pointer; width: 100%; transition: 0.2s; text-transform: uppercase; }
         .btn:hover { background: var(--vurgu-renk); transform: scale(0.98); }
 
         /* --- ÜST BİLGİ ÇUBUĞU --- */
         .ust-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: var(--panel); border-bottom: 1px solid #2a2c35; }
-        .oyuncu-isim { font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; }
+        .oyuncu-isim { font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
         .oyuncu-rutbe { font-size: 0.8rem; color: var(--vurgu-renk); text-transform: uppercase; letter-spacing: 2px; }
 
-        /* --- ANA iPAD EKRANI (İkiye Bölünmüş) --- */
+        /* --- ANA iPAD EKRANI --- */
         .ana-ekran { display: flex; flex: 1; height: calc(100vh - 80px); }
         
-        /* SOL: Koleksiyon */
         .sol-panel { flex: 1; padding: 30px; overflow-y: auto; border-right: 1px solid #2a2c35; }
         .baslik { font-size: 1.2rem; color: var(--metin-soluk); margin-bottom: 20px; font-weight: 700; letter-spacing: 1px; }
         
@@ -54,7 +53,6 @@
         .canavar-isim { font-weight: 700; font-size: 0.9rem; margin-bottom: 5px; }
         .nadir-etiket { font-size: 0.7rem; font-weight: 900; padding: 3px 8px; border-radius: 5px; background: #333; display: inline-block; }
         
-        /* SAĞ: Radar ve Kod Girişi */
         .sag-panel { width: 400px; background: #14151b; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; position: relative; }
         .radar-uyari { color: var(--kirmizi-alarm); font-weight: 900; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 40px; text-align: center; animation: yanipSonme 2s infinite; }
         @keyframes yanipSonme { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -66,7 +64,7 @@
         .btn-cevir { background: var(--kirmizi-alarm); color: #fff; padding: 20px; font-size: 1.3rem; border-radius: 10px; width: 100%; font-weight: 900; letter-spacing: 2px; border: none; cursor: pointer; transition: 0.2s; box-shadow: 0 10px 20px rgba(255, 51, 102, 0.2); }
         .btn-cevir:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 51, 102, 0.4); }
 
-        /* --- KUTU AÇILIMI (SPIN) EFEKTİ --- */
+        /* --- GACHA EKRANI --- */
         #gacha-ekrani {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95);
             z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center;
@@ -93,19 +91,17 @@
     </div>
 
     <div id="ana-uygulama" style="display: none; height: 100%; flex-direction: column;">
-        
         <div class="ust-bar">
             <div>
                 <div class="oyuncu-isim" id="ekran-isim">AVCI</div>
                 <div class="oyuncu-rutbe">Seviye 1 Avcı</div>
             </div>
             <div style="font-family: 'Roboto Mono', monospace; font-size: 1.2rem; color: var(--vurgu-renk);">
-                KAPASİTE: <span id="koleksiyon-sayisi">1</span>/50
+                KAPASİTE: <span id="koleksiyon-sayisi">0</span>/50
             </div>
         </div>
 
         <div class="ana-ekran">
-            
             <div class="sol-panel">
                 <div class="baslik">KOLEKSİYONUN</div>
                 <div class="koleksiyon-grid" id="envanter-listesi">
@@ -114,24 +110,21 @@
 
             <div class="sag-panel">
                 <div class="radar-uyari">⚠ YAKINLARDA BİR TAŞIYICI TESPİT EDİLDİ</div>
-                
                 <div class="kod-kutusu">
                     <p style="color: #666; font-weight: bold; margin-top: 0;">TAŞIYICI KODUNU GİR</p>
                     <input type="number" id="hedef-kod" class="kod-input" placeholder="----" maxlength="4">
                     <button class="btn-cevir" onclick="koduCozVeCevir()">KODU ÇÖZ & ÇEVİR</button>
                 </div>
+                <button onclick="cikisYap()" style="margin-top: 20px; background: transparent; color: #555; border: 1px solid #555; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Sistemden Çık</button>
             </div>
-
         </div>
     </div>
 
     <div id="gacha-ekrani">
         <div id="gacha-bekleme" class="gacha-kapsul">?</div>
-        
         <div id="gacha-sonuc" class="gacha-sonuc">
             <h2 style="color: var(--vurgu-renk); letter-spacing: 5px; margin-bottom: 20px;">VERİ ÇEKİLDİ!</h2>
             <div class="yeni-resim">
-                <img src="" id="yeni-canavar-img" style="width:100%; height:100%; border-radius:20px; object-fit:cover; display:none;">
                 <div id="yeni-canavar-placeholder" style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:#000; font-size:4rem; background:#fff; border-radius:20px;">✨</div>
             </div>
             <h1 id="yeni-canavar-isim" style="font-size: 2.5rem; margin-bottom: 10px;">---</h1>
@@ -143,9 +136,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, getDocs, query, where, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Senin Firebase Bilgilerin
         const firebaseConfig = {
           apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
           authDomain: "gameoftame-7c63f.firebaseapp.com",
@@ -158,7 +150,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- VERİTABANI: Olası Canavarlar Havuzu ---
+        // Canavar Havuzu (Gacha için)
         const canavarHavuzu = [
             { isim: "Kül Kurdu", nadirlik: "Yaygın", renk: "#aaa" },
             { isim: "Gölge Sürüngeni", nadirlik: "Yaygın", renk: "#aaa" },
@@ -167,40 +159,56 @@
             { isim: "Hiçlik Ejderi", nadirlik: "Efsanevi", renk: "#ffaa00" }
         ];
 
-        let oyuncuEnvanteri = []; // Anlık bellekte tutmak için
+        let oyuncuEnvanteri = []; // Bellek
 
-        // --- 1. GİRİŞ VE HESAP OLUŞTURMA ---
+        // --- 1. GERÇEK KİMLİK DOĞRULAMA (LOGİN) ---
         window.hesapOlustur = async function() {
-            const kullanici = document.getElementById("kullanici-adi").value.trim();
+            const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();
             const durum = document.getElementById("giris-durum");
 
-            if (kullanici.length < 3) {
-                durum.innerText = "İsim çok kısa!"; return;
+            if (kullaniciAdi.length < 3) {
+                durum.innerText = "İsim en az 3 harf olmalı."; return;
             }
 
-            durum.style.color = "#888";
-            durum.innerText = "Sisteme bağlanıyor...";
+            durum.style.color = "#8a8d98";
+            durum.innerText = "Veritabanı taranıyor...";
 
             try {
-                // Oyuncuyu veritabanına kaydet (Başlangıçta 1 tane yaratık veriyoruz)
-                const docRef = await addDoc(collection(db, "players"), {
-                    isim: kullanici,
-                    envanter: [canavarHavuzu[0]] 
-                });
-                
-                localStorage.setItem("oyuncuID", docRef.id);
-                localStorage.setItem("oyuncuIsim", kullanici);
-                
-                sistemiBaslat();
+                const playersRef = collection(db, "players");
+                const q = query(playersRef, where("isim", "==", kullaniciAdi));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // HESAP VAR
+                    const playerData = querySnapshot.docs[0];
+                    localStorage.setItem("oyuncuID", playerData.id);
+                    localStorage.setItem("oyuncuIsim", playerData.data().isim);
+                    durum.style.color = "#00ffcc";
+                    durum.innerText = "Hesap bulundu. Giriş yapılıyor...";
+                } else {
+                    // HESAP YOK - OLUŞTUR
+                    durum.innerText = "Yeni hesap oluşturuluyor...";
+                    const docRef = await addDoc(collection(db, "players"), {
+                        isim: kullaniciAdi,
+                        seviye: 1,
+                        kapasite: 50,
+                        envanter: [ { isim: "Başlangıç Çekirdeği", nadirlik: "Yaygın", renk: "#aaa" } ]
+                    });
+                    localStorage.setItem("oyuncuID", docRef.id);
+                    localStorage.setItem("oyuncuIsim", kullaniciAdi);
+                    durum.style.color = "#00ffcc";
+                    durum.innerText = "Kayıt başarılı. Yönlendiriliyor...";
+                }
+                setTimeout(() => { sistemiBaslat(); }, 1000);
             } catch (e) {
                 console.error(e);
-                durum.style.color = "var(--kirmizi-alarm)";
-                durum.innerText = "Bağlantı hatası!";
+                durum.style.color = "#ff3366";
+                durum.innerText = "Sunucu bağlantı hatası!";
             }
         };
 
-        // --- 2. OYUNU BAŞLATMA VE VERİ ÇEKME ---
-        async function sistemiBaslat() {
+        // --- 2. SİSTEMİ BAŞLAT (VERİ ÇEK) ---
+        window.sistemiBaslat = async function() {
             const id = localStorage.getItem("oyuncuID");
             const isim = localStorage.getItem("oyuncuIsim");
             
@@ -209,20 +217,25 @@
                 document.getElementById("ana-uygulama").style.display = "flex";
                 document.getElementById("ekran-isim").innerText = isim;
 
-                // Veritabanından oyuncunun sahip olduğu canavarları çek
-                const oyuncuVerisi = await getDoc(doc(db, "players", id));
-                if (oyuncuVerisi.exists()) {
-                    oyuncuEnvanteri = oyuncuVerisi.data().envanter || [];
-                    arayuzuGuncelle();
+                try {
+                    const oyuncuVerisi = await getDoc(doc(db, "players", id));
+                    if (oyuncuVerisi.exists()) {
+                        oyuncuEnvanteri = oyuncuVerisi.data().envanter || [];
+                        arayuzuGuncelle();
+                    } else {
+                        cikisYap();
+                    }
+                } catch (e) {
+                    console.error("Veri çekilemedi:", e);
                 }
             }
-        }
+        };
 
-        // Koleksiyonu Ekrana Çizdirme
+        // Arayüzü Çiz
         function arayuzuGuncelle() {
             const grid = document.getElementById("envanter-listesi");
             document.getElementById("koleksiyon-sayisi").innerText = oyuncuEnvanteri.length;
-            grid.innerHTML = ""; // Temizle
+            grid.innerHTML = ""; 
 
             oyuncuEnvanteri.forEach(canavar => {
                 const kart = document.createElement("div");
@@ -236,45 +249,33 @@
             });
         }
 
-        // --- 3. KOD GİRME VE ÇARK (GACHA) MEKANİĞİ ---
+        // --- 3. GACHA (KUTU AÇILIMI) ---
         window.koduCozVeCevir = async function() {
             const kod = document.getElementById("hedef-kod").value;
-            if (kod.length !== 4) {
-                alert("Hata: Kod 4 haneli olmalıdır.");
-                return;
-            }
+            if (kod.length !== 4) { alert("Hata: Kod 4 haneli olmalıdır."); return; }
 
-            // (Gerçek oyunda burada bu kodun doğru olup olmadığını Firebase'e sorarız)
-            // Şimdilik herhangi 4 haneli kod kabul ediliyor ve "Kutu" açılıyor.
-
-            // Çark (Gacha) Ekranını Aç
             document.getElementById("hedef-kod").value = "";
             document.getElementById("gacha-ekrani").style.display = "flex";
             document.getElementById("gacha-bekleme").style.display = "flex";
             document.getElementById("gacha-sonuc").style.display = "none";
 
-            // Rastgele bir canavar seç (Algoritma: Düşük nadirlik çıkma ihtimali yüksek)
             const rastgeleSayi = Math.random();
             let kazanilanCanavar;
             
-            if (rastgeleSayi > 0.95) kazanilanCanavar = canavarHavuzu[4]; // %5 Efsanevi
-            else if (rastgeleSayi > 0.80) kazanilanCanavar = canavarHavuzu[3]; // %15 Destansı
-            else if (rastgeleSayi > 0.50) kazanilanCanavar = canavarHavuzu[2]; // %30 Nadir
-            else kazanilanCanavar = canavarHavuzu[Math.floor(Math.random() * 2)]; // %50 Yaygın
+            if (rastgeleSayi > 0.95) kazanilanCanavar = canavarHavuzu[4];
+            else if (rastgeleSayi > 0.80) kazanilanCanavar = canavarHavuzu[3];
+            else if (rastgeleSayi > 0.50) kazanilanCanavar = canavarHavuzu[2];
+            else kazanilanCanavar = canavarHavuzu[Math.floor(Math.random() * 2)];
 
-            // Animasyon bekleme süresi (3 saniye gerilim)
             setTimeout(async () => {
-                // Firebase veritabanına yeni canavarı ekle
                 const id = localStorage.getItem("oyuncuID");
                 await updateDoc(doc(db, "players", id), {
                     envanter: arrayUnion(kazanilanCanavar)
                 });
                 
-                // Bellekteki listeyi de güncelle
                 oyuncuEnvanteri.push(kazanilanCanavar);
                 arayuzuGuncelle();
 
-                // Sonucu Ekranda Göster
                 document.getElementById("gacha-bekleme").style.display = "none";
                 document.getElementById("gacha-sonuc").style.display = "block";
                 
@@ -282,14 +283,18 @@
                 document.getElementById("yeni-canavar-isim").style.color = kazanilanCanavar.renk;
                 document.getElementById("yeni-canavar-nadir").innerText = kazanilanCanavar.nadirlik;
 
-            }, 3000); // 3 saniye titrer
+            }, 3000); 
         };
 
         window.gachaKapat = function() {
             document.getElementById("gacha-ekrani").style.display = "none";
         };
 
-        // Sayfa yüklendiğinde çalıştır
+        window.cikisYap = function() {
+            localStorage.clear();
+            location.reload();
+        };
+
         sistemiBaslat();
     </script>
 </body>

@@ -266,41 +266,82 @@
             });
         }
 
-        // --- 3. GACHA (KUTU AÇILIMI) ---
+// --- 3. GACHA (GERÇEK KOD DOĞRULAMA) ---
         window.koduCozVeCevir = async function() {
-            const kod = document.getElementById("hedef-kod").value;
-            if (kod.length !== 4) { alert("Hata: Kod 4 haneli olmalıdır."); return; }
+            const girilenKod = document.getElementById("hedef-kod").value.trim();
+            const uyari = document.querySelector(".radar-uyari");
+            const buton = document.querySelector(".btn-cevir");
 
-            document.getElementById("hedef-kod").value = "";
-            document.getElementById("gacha-ekrani").style.display = "flex";
-            document.getElementById("gacha-bekleme").style.display = "flex";
-            document.getElementById("gacha-sonuc").style.display = "none";
+            if (girilenKod.length !== 4) { 
+                uyari.innerText = "HATA: KOD 4 HANELİ OLMALIDIR."; 
+                uyari.style.color = "var(--kirmizi-alarm)";
+                return; 
+            }
 
-            const rastgeleSayi = Math.random();
-            let kazanilanCanavar;
-            
-            if (rastgeleSayi > 0.95) kazanilanCanavar = canavarHavuzu[4];
-            else if (rastgeleSayi > 0.80) kazanilanCanavar = canavarHavuzu[3];
-            else if (rastgeleSayi > 0.50) kazanilanCanavar = canavarHavuzu[2];
-            else kazanilanCanavar = canavarHavuzu[Math.floor(Math.random() * 2)];
+            // Butonu kilitle ve durumu güncelle
+            buton.innerText = "SİNYAL ARANIYOR...";
+            buton.disabled = true;
+            uyari.innerText = "VERİTABANI SORGULANIYOR...";
+            uyari.style.color = "var(--metin-soluk)";
 
-            setTimeout(async () => {
-                const id = localStorage.getItem("oyuncuID");
-                await updateDoc(doc(db, "players", id), {
-                    envanter: arrayUnion(kazanilanCanavar)
-                });
-                
-                oyuncuEnvanteri.push(kazanilanCanavar);
-                arayuzuGuncelle();
+            try {
+                // 1. Firebase'den aktif Taşıyıcı kodunu çek
+                const tasiyiciVerisi = await getDoc(doc(db, "gameState", "carrier"));
 
-                document.getElementById("gacha-bekleme").style.display = "none";
-                document.getElementById("gacha-sonuc").style.display = "block";
-                
-                document.getElementById("yeni-canavar-isim").innerText = kazanilanCanavar.isim;
-                document.getElementById("yeni-canavar-isim").style.color = kazanilanCanavar.renk;
-                document.getElementById("yeni-canavar-nadir").innerText = kazanilanCanavar.nadirlik;
+                // 2. Kod veritabanındaki kod ile aynı mı kontrol et
+                if (tasiyiciVerisi.exists() && tasiyiciVerisi.data().aktifKod === girilenKod) {
+                    
+                    // KOD DOĞRU!
+                    uyari.innerText = "SİNYAL YAKALANDI! VERİ ÇEKİLİYOR...";
+                    uyari.style.color = "var(--vurgu-renk)";
+                    
+                    document.getElementById("hedef-kod").value = "";
+                    document.getElementById("gacha-ekrani").style.display = "flex";
+                    document.getElementById("gacha-bekleme").style.display = "flex";
+                    document.getElementById("gacha-sonuc").style.display = "none";
 
-            }, 3000); 
+                    // Rastgele Canavar Seçimi
+                    const rastgeleSayi = Math.random();
+                    let kazanilanCanavar;
+                    if (rastgeleSayi > 0.95) kazanilanCanavar = canavarHavuzu[4];
+                    else if (rastgeleSayi > 0.80) kazanilanCanavar = canavarHavuzu[3];
+                    else if (rastgeleSayi > 0.50) kazanilanCanavar = canavarHavuzu[2];
+                    else kazanilanCanavar = canavarHavuzu[Math.floor(Math.random() * 2)];
+
+                    setTimeout(async () => {
+                        const id = localStorage.getItem("oyuncuID");
+                        await updateDoc(doc(db, "players", id), {
+                            envanter: arrayUnion(kazanilanCanavar)
+                        });
+                        
+                        oyuncuEnvanteri.push(kazanilanCanavar);
+                        arayuzuGuncelle();
+
+                        document.getElementById("gacha-bekleme").style.display = "none";
+                        document.getElementById("gacha-sonuc").style.display = "block";
+                        
+                        document.getElementById("yeni-canavar-isim").innerText = kazanilanCanavar.isim;
+                        document.getElementById("yeni-canavar-isim").style.color = kazanilanCanavar.renk;
+                        document.getElementById("yeni-canavar-nadir").innerText = kazanilanCanavar.nadirlik;
+
+                    }, 3000);
+
+                } else {
+                    // KOD YANLIŞ VEYA SÜRESİ DOLMUŞ!
+                    uyari.innerText = "BAĞLANTI REDDEDİLDİ: GEÇERSİZ KOD!";
+                    uyari.style.color = "var(--kirmizi-alarm)";
+                }
+
+            } catch (error) {
+                console.error("Doğrulama hatası:", error);
+                uyari.innerText = "SUNUCU BAĞLANTI HATASI!";
+                uyari.style.color = "var(--kirmizi-alarm)";
+            } finally {
+                // İşlem bitince butonu eski haline getir
+                buton.innerText = "KODU ÇÖZ & ÇEVİR";
+                buton.disabled = false;
+                document.getElementById("hedef-kod").value = "";
+            }
         };
 
         window.gachaKapat = function() {

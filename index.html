@@ -80,11 +80,14 @@
 </head>
 <body>
 
-    <div id="giris-ekrani">
+<div id="giris-ekrani">
         <div class="giris-kutu">
             <h1 style="font-size: 2.5rem; margin-bottom: 10px;">PROJE: SÜRÜ</h1>
-            <p style="color: var(--metin-soluk);">Sisteme bağlanmak için adını gir.</p>
+            <p style="color: var(--metin-soluk);">Sisteme bağlanmak için adını ve şifreni gir.</p>
+            
             <input type="text" id="kullanici-adi" class="input-text" placeholder="İSİM" maxlength="12">
+            <input type="password" id="kullanici-pin" class="input-text" placeholder="4 HANELİ PİN" maxlength="4" style="margin-top: 0; text-transform: none; letter-spacing: 5px;">
+            
             <button class="btn" onclick="hesapOlustur()">BAĞLAN</button>
             <p id="giris-durum" style="margin-top: 15px; color: var(--kirmizi-alarm); font-weight: bold;"></p>
         </div>

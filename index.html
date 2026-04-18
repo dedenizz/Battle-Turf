@@ -3,217 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PROJECT: OVERRIDE // HUB</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <title>Game of Tame - Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg: #050508;
-            --surface: rgba(20, 20, 30, 0.7);
-            --cyan: #00f3ff;
-            --magenta: #ff003c;
-            --gold: #ffaa00;
-            --text-main: #e0e0e0;
+            --bg-color: #0b0c10;
+            --panel-bg: rgba(30, 32, 40, 0.85);
+            --accent-gold: #f3c669;
+            --accent-purple: #9d4edd;
+            --text-light: #e0e0e0;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            margin: 0; padding: 0; background-color: var(--bg); color: var(--text-main); 
-            font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; 
-            overflow: hidden; background-image: radial-gradient(circle at 50% 0%, #111122 0%, #050508 70%);
+            margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-light); 
+            font-family: 'Lato', sans-serif; height: 100vh; display: flex; flex-direction: column; 
+            overflow: hidden; 
+            /* A clean, magical dark background */
+            background-image: radial-gradient(circle at top, #240b36 0%, #000000 100%);
         }
 
-        h1, h2, h3 { font-family: 'Orbitron', sans-serif; margin: 0; }
+        h1, h2, h3 { font-family: 'Cinzel', serif; margin: 0; font-weight: 800; letter-spacing: 2px; }
 
-        /* Top Header */
+        /* Login Overlay */
+        #login-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 100; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 20px; text-align: center;
+        }
+        .login-box { background: var(--panel-bg); padding: 40px 20px; border-radius: 15px; border: 1px solid var(--accent-purple); width: 100%; max-width: 350px; box-shadow: 0 10px 30px rgba(157, 78, 221, 0.2); }
+        .input-field { width: 100%; padding: 15px; margin: 20px 0; background: rgba(0,0,0,0.5); border: 1px solid #555; color: #fff; border-radius: 8px; font-size: 1.1rem; text-align: center; outline: none; }
+        .input-field:focus { border-color: var(--accent-gold); }
+
+        /* Top Bar */
         .top-bar {
             display: flex; justify-content: space-between; align-items: center; padding: 20px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
-            z-index: 10;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%); z-index: 10;
         }
-        .user-info .name { font-size: 1.4rem; font-weight: 700; color: var(--cyan); text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
-        .user-info .rank { font-size: 0.9rem; color: #888; }
-        .currency { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--gold); }
+        .user-info .name { font-size: 1.3rem; font-family: 'Cinzel', serif; color: var(--accent-gold); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .user-info .title { font-size: 0.85rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .currency { font-size: 1.1rem; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 5px; }
+        .currency::before { content: '✦'; color: var(--accent-gold); }
 
-        /* Main Content Area */
-        .view-container { flex: 1; position: relative; overflow-y: auto; padding: 0 20px 80px 20px; }
-        .view { display: none; animation: fadeIn 0.3s ease-in-out; }
+        /* App Screens */
+        .view-container { flex: 1; overflow-y: auto; padding: 0 20px 100px 20px; }
+        .view { display: none; animation: fadeIn 0.4s ease; }
         .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* The Hunt (Radar Replacement) */
+        .hunt-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; margin-top: 30px; }
+        .magic-circle {
+            width: 280px; height: 280px; border-radius: 50%; border: 1px solid rgba(157, 78, 221, 0.3);
+            display: flex; justify-content: center; align-items: center; position: relative;
+            box-shadow: inset 0 0 50px rgba(157, 78, 221, 0.1);
+        }
+        .magic-circle::before {
+            content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%;
+            border: 2px dashed var(--accent-gold); opacity: 0.5; animation: spinRotate 15s linear infinite;
+        }
+        @keyframes spinRotate { 100% { transform: rotate(360deg); } }
 
-        /* --- RADAR VIEW (The Hunt) --- */
-        .radar-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; margin-top: 20px; }
-        .radar-circle {
-            width: 250px; height: 250px; border-radius: 50%; border: 2px solid rgba(0, 243, 255, 0.2);
-            position: relative; display: flex; justify-content: center; align-items: center;
-            box-shadow: inset 0 0 40px rgba(0, 243, 255, 0.05);
+        .target-input {
+            background: rgba(0,0,0,0.6); border: 2px solid var(--accent-purple); color: #fff; font-size: 2.5rem;
+            text-align: center; padding: 15px; width: 200px; border-radius: 12px; margin-top: 40px;
+            letter-spacing: 8px; outline: none; transition: 0.3s;
         }
-        .radar-sweep {
-            position: absolute; width: 100%; height: 100%; border-radius: 50%;
-            background: conic-gradient(from 0deg, transparent 70%, rgba(0, 243, 255, 0.4) 100%);
-            animation: sweep 2s linear infinite;
+        .target-input:focus { box-shadow: 0 0 20px rgba(157, 78, 221, 0.5); }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(45deg, #7b2cbf, #9d4edd); color: #fff; border: none; padding: 15px 40px;
+            font-size: 1.1rem; font-family: 'Cinzel', serif; font-weight: bold; border-radius: 30px; margin-top: 20px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(157, 78, 221, 0.4); transition: 0.2s; width: 100%;
         }
-        @keyframes sweep { to { transform: rotate(360deg); } }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn:active { transform: translateY(1px); }
+
+        /* The Collection (Inventory) */
+        .collection-header { text-align: center; margin-bottom: 25px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         
-        .status-text { margin-top: 30px; font-size: 1.2rem; letter-spacing: 2px; color: var(--cyan); text-align: center; }
-        
-        .host-input-container { margin-top: 30px; width: 100%; text-align: center; }
-        .host-input {
-            background: rgba(0,0,0,0.5); border: 1px solid var(--cyan); color: #fff; font-size: 2rem;
-            text-align: center; padding: 15px; width: 80%; border-radius: 10px; font-family: 'Orbitron', sans-serif;
-            outline: none; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); transition: 0.3s; letter-spacing: 5px;
+        .beast-card {
+            background: var(--panel-bg); border: 1px solid #333; border-radius: 12px; padding: 15px;
+            text-align: center; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .host-input:focus { box-shadow: 0 0 25px rgba(0, 243, 255, 0.6); }
+        .beast-card.epic { border-color: var(--accent-purple); box-shadow: 0 0 15px rgba(157, 78, 221, 0.2); }
+        .beast-card.legendary { border-color: var(--accent-gold); box-shadow: 0 0 15px rgba(243, 198, 105, 0.2); }
 
-        .btn-hack {
-            margin-top: 15px; background: var(--cyan); color: #000; border: none; padding: 15px 40px;
-            font-size: 1.2rem; font-family: 'Orbitron', sans-serif; font-weight: 900; border-radius: 5px;
-            cursor: pointer; text-transform: uppercase; width: 80%; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
-            transition: 0.2s;
+        .image-frame {
+            width: 90px; height: 90px; margin: 0 auto 10px auto; border-radius: 8px;
+            background: #111; border: 2px solid #444; display: flex; justify-content: center; align-items: center;
         }
-        .btn-hack:hover { background: #fff; box-shadow: 0 0 25px var(--cyan); }
-        .btn-hack:active { transform: scale(0.95); }
+        .epic .image-frame { border-color: var(--accent-purple); }
+        .legendary .image-frame { border-color: var(--accent-gold); }
 
-        /* --- VAULT VIEW (Inventory) --- */
-        .vault-header { text-align: center; margin-bottom: 20px; }
-        .vault-header h2 { color: #fff; letter-spacing: 3px; font-size: 1.8rem; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding-bottom: 20px; }
-        
-        /* Gacha Cards */
-        .card {
-            background: var(--surface); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; padding: 15px; text-align: center; position: relative; overflow: hidden;
-        }
-        .card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); opacity: 0; transition: 0.3s; }
-        .card:hover::before { opacity: 1; }
-
-        .card.apex { border-color: var(--magenta); box-shadow: 0 0 20px rgba(255, 0, 60, 0.2); }
-        .card.sovereign { border-color: var(--gold); box-shadow: 0 0 20px rgba(255, 170, 0, 0.3); }
-
-        .pet-image-placeholder {
-            width: 80px; height: 80px; margin: 0 auto 10px auto; border-radius: 10px;
-            background: linear-gradient(45deg, #111, #222); border: 1px solid #333;
-            display: flex; justify-content: center; align-items: center; font-size: 2rem;
-            color: #555; font-family: 'Orbitron', sans-serif;
-        }
-        .apex .pet-image-placeholder { background: linear-gradient(45deg, #300, #500); border-color: var(--magenta); color: var(--magenta); }
-        .sovereign .pet-image-placeholder { background: linear-gradient(45deg, #331a00, #553300); border-color: var(--gold); color: var(--gold); }
-
-        .pet-name { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #fff; }
-        .pet-tier { font-size: 0.8rem; font-weight: bold; margin-top: 5px; }
-        .apex .pet-tier { color: var(--magenta); }
-        .sovereign .pet-tier { color: var(--gold); }
-
-        /* Bottom Nav Bar */
+        /* Navigation */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
-            background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1);
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px;
+            background: var(--panel-bg); backdrop-filter: blur(10px); border-top: 1px solid #333;
             display: flex; justify-content: space-around; align-items: center; z-index: 20;
         }
         .nav-item {
-            color: #666; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; text-align: center;
-            flex: 1; padding: 15px 0; cursor: pointer; transition: 0.3s;
+            color: #888; font-family: 'Cinzel', serif; font-size: 1rem; text-align: center;
+            flex: 1; padding: 15px 0; cursor: pointer; transition: 0.3s; font-weight: bold;
         }
-        .nav-item.active { color: var(--cyan); text-shadow: 0 0 10px rgba(0, 243, 255, 0.6); }
+        .nav-item.active { color: var(--accent-gold); text-shadow: 0 0 10px rgba(243, 198, 105, 0.4); }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="user-info">
-            <div class="name">GHOST_PROTO</div>
-            <div class="rank">Lvl 14 Hunter</div>
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="color: var(--accent-gold);">GAME OF TAME</h2>
+            <p style="color: #aaa; margin-bottom: 30px;">Enter your Tamer Name to begin.</p>
+            <input type="text" id="username-input" class="input-field" placeholder="Username" maxlength="12">
+            <button class="btn" onclick="createAccount()">ENTER ARENA</button>
+            <p id="login-status" style="margin-top: 15px; font-size: 0.9rem; color: #ff4444;"></p>
         </div>
-        <div class="currency">⌬ 2,450</div>
     </div>
 
-    <div class="view-container">
-        
-        <div id="view-radar" class="view active">
-            <div class="radar-wrapper">
-                <div class="radar-circle">
-                    <div class="radar-sweep"></div>
-                    <h2 style="color: rgba(255,255,255,0.2);">SCANNING</h2>
+    <div id="main-ui" style="display: none; height: 100%; flex-direction: column;">
+        <div class="top-bar">
+            <div class="user-info">
+                <div class="name" id="display-name">TAMER</div>
+                <div class="title">Novice Hunter</div>
+            </div>
+            <div class="currency" id="display-coins">0</div>
+        </div>
+
+        <div class="view-container">
+            
+            <div id="view-hunt" class="view active">
+                <div class="hunt-container">
+                    <div class="magic-circle">
+                        <h3 style="color: #666; font-family: 'Lato', sans-serif;">SEEKING TARGET...</h3>
+                    </div>
+                    
+                    <input type="number" id="targetCode" class="target-input" placeholder="0000" maxlength="4">
+                    <button class="btn" style="width: 200px;" onclick="initiateHunt()">ENGAGE</button>
                 </div>
-                <div class="status-text">AWAITING HOST SIGNAL</div>
+            </div>
+
+            <div id="view-collection" class="view">
+                <div class="collection-header">
+                    <h2>YOUR BEASTS</h2>
+                </div>
                 
-                <div class="host-input-container">
-                    <p style="color: #888; font-size: 0.9rem; font-family: 'Orbitron', sans-serif;">MANUAL OVERRIDE CODE</p>
-                    <input type="number" id="hostCodeInput" class="host-input" placeholder="----" maxlength="4">
-                    <button class="btn-hack" onclick="initiateBreach()">BREACH</button>
+                <div class="grid" id="inventory-grid">
+                    <div class="beast-card">
+                        <div class="image-frame"><span style="color: #555;">No Art</span></div>
+                        <h4 style="margin: 0; font-family: 'Cinzel', serif;">Starter Beast</h4>
+                        <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #888;">Common</p>
+                    </div>
                 </div>
             </div>
+
         </div>
 
-        <div id="view-vault" class="view">
-            <div class="vault-header">
-                <h2>THE VAULT</h2>
-                <p style="color: #888;">Captured Animas</p>
-            </div>
-            
-            <div class="grid">
-                <div class="card">
-                    <div class="pet-image-placeholder">?</div>
-                    <div class="pet-name">DATA_WOLF</div>
-                    <div class="pet-tier" style="color: #888;">STANDARD</div>
-                </div>
-
-                <div class="card">
-                    <div class="pet-image-placeholder">?</div>
-                    <div class="pet-name">AERO_STRIKE</div>
-                    <div class="pet-tier" style="color: var(--cyan);">HIGH-END</div>
-                </div>
-
-                <div class="card apex">
-                    <div class="pet-image-placeholder">!</div>
-                    <div class="pet-name">MECHA_REX</div>
-                    <div class="pet-tier">APEX TIER</div>
-                </div>
-
-                <div class="card sovereign">
-                    <div class="pet-image-placeholder">★</div>
-                    <div class="pet-name">VOID_DRAGON</div>
-                    <div class="pet-tier">SOVEREIGN</div>
-                </div>
-            </div>
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchView('hunt', this)">THE HUNT</div>
+            <div class="nav-item" onclick="switchView('collection', this)">COLLECTION</div>
         </div>
-
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchView('radar', this)">[ RADAR ]</div>
-        <div class="nav-item" onclick="switchView('vault', this)">[ VAULT ]</div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    <script>
-        // Logic to switch between the Radar and the Vault
-        function switchView(viewName, element) {
-            // Hide all views
-            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
-            // Remove active state from nav buttons
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        // Your exact Firebase keys
+        const firebaseConfig = {
+          apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
+          authDomain: "gameoftame-7c63f.firebaseapp.com",
+          projectId: "gameoftame-7c63f",
+          storageBucket: "gameoftame-7c63f.firebasestorage.app",
+          messagingSenderId: "829948418870",
+          appId: "1:829948418870:web:02373ec1d4b170049fb197"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Account Creation / Login
+        window.createAccount = async function() {
+            const username = document.getElementById("username-input").value.trim();
+            const statusText = document.getElementById("login-status");
+
+            if (username.length < 3) {
+                statusText.innerText = "Name must be at least 3 letters.";
+                return;
+            }
+
+            statusText.style.color = "#aaa";
+            statusText.innerText = "Connecting to server...";
+
+            try {
+                // Actually creates the player in your database
+                const docRef = await addDoc(collection(db, "players"), {
+                    username: username,
+                    coins: 500, // Starting money
+                    inventory: ["Starter Beast"]
+                });
+                
+                // Save login state to iPad/Phone
+                localStorage.setItem("playerID", docRef.id);
+                localStorage.setItem("playerName", username);
+                
+                checkLoginState();
+            } catch (e) {
+                console.error(e);
+                statusText.style.color = "#ff4444";
+                statusText.innerText = "Error connecting to database.";
+            }
+        };
+
+        // Boot Up Sequence
+        function checkLoginState() {
+            const savedID = localStorage.getItem("playerID");
+            const savedName = localStorage.getItem("playerName");
             
-            // Show selected view
+            if (savedID) {
+                // Hide Login, Show Game
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("main-ui").style.display = "flex";
+                
+                // Load Player Data
+                document.getElementById("display-name").innerText = savedName;
+                document.getElementById("display-coins").innerText = "500"; // We will make this pull live data next
+            }
+        }
+
+        // UI Navigation
+        window.switchView = function(viewName, element) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('view-' + viewName).classList.add('active');
-            // Highlight clicked nav button
             element.classList.add('active');
         }
 
-        // Logic to transition to the Battle screen
-        function initiateBreach() {
-            const input = document.getElementById('hostCodeInput').value;
-            
-            // Simple check to make sure they typed something before fighting
-            if (input.length > 0) {
-                // In the future, this will check Firebase to see if the code is real.
-                // For now, it transitions directly to your battle.html file.
+        // Jump to Battle
+        window.initiateHunt = function() {
+            const code = document.getElementById('targetCode').value;
+            if (code.length > 0) {
                 window.location.href = 'battle.html';
             } else {
-                alert("ERROR: ENTER A HOST CODE TO BREACH.");
+                alert("Enter a Target Code to Engage!");
             }
         }
+
+        // Run check on start
+        checkLoginState();
     </script>
 </body>
 </html>

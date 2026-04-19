@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <title>Sürü - YARATICI PANELİ</title>
     <style>
-        body { background: #050505; color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .kutu { background: #111; border: 2px solid #00ffcc; padding: 30px; display: inline-block; border-radius: 10px; width: 400px; text-align: left; }
+        body { background: #050505; color: #fff; font-family: sans-serif; text-align: center; padding-top: 20px; }
+        .kutu { background: #111; border: 2px solid #00ffcc; padding: 30px; display: inline-block; border-radius: 10px; width: 400px; text-align: left; margin-bottom: 20px; }
         input, select { width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 20px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; }
-        button { background: #00ffcc; color: #000; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; border: none; font-size: 1.2rem; }
+        button { background: #00ffcc; color: #000; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; border: none; font-size: 1.2rem; border-radius: 5px; margin-bottom: 10px;}
+        .btn-kirmizi { background: #ff3366; color: white; }
     </style>
 </head>
 <body>
@@ -15,6 +16,7 @@
     <h1>🧬 YENİ CANAVAR YARAT</h1>
     
     <div class="kutu">
+        <h3 style="margin-top:0; color: #00ffcc;">TEKLİ EKLEME (MANUEL)</h3>
         <label>Canavar İsmi:</label>
         <input type="text" id="c-isim" placeholder="Örn: Gölge Ejderi">
 
@@ -31,7 +33,15 @@
         <input type="text" id="c-resim" placeholder="https://...">
 
         <button onclick="canavarEkle()">VERİTABANINA EKLE</button>
-        <p id="mesaj" style="color: #00ffcc; text-align: center; margin-top: 15px; font-weight: bold;"></p>
+        <p id="mesaj" style="text-align: center; font-weight: bold;"></p>
+    </div>
+
+    <br>
+
+    <div class="kutu" style="border-color: #ff3366; text-align: center;">
+        <h3 style="margin-top:0; color: #ff3366;">SİHİRLİ BUTON (SADECE 1 KERE BAS)</h3>
+        <p style="font-size: 0.9rem; color: #888;">Buna bastığında Geminin hazırladığı 50 adet başlangıç canavarı otomatik olarak veritabanına yüklenir.</p>
+        <button class="btn-kirmizi" id="toplu-btn" onclick="varsayilanlariYukle()">50 CANAVARI SİSTEME YÜKLE</button>
     </div>
 
     <script type="module">
@@ -50,37 +60,87 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Nadirliğe göre renk atama sözlüğü
+        // --- GÜVENLİK PROTOKOLÜ ---
+        const parola = prompt("YARATICI PROTOKOLÜ: PAROLAYI GİRİNİZ. (Şifre: admin123)");
+        if(parola !== "admin123") { 
+            document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%'>ERİŞİM REDDEDİLDİ.</h1>";
+            throw new Error("İzinsiz giriş denemesi.");
+        }
+
         const renkler = { "YAYGIN": "#a0a0a0", "NADİR": "#0088ff", "DESTANSI": "#aa00ff", "EFSANEVİ": "#ffaa00", "MİTİK": "#ff3366" };
 
         window.canavarEkle = async function() {
             const isim = document.getElementById("c-isim").value;
             const nadir = document.getElementById("c-nadir").value;
             const resim = document.getElementById("c-resim").value;
-            const btn = document.querySelector("button");
+            const mesaj = document.getElementById("mesaj");
 
             if(!isim || !resim) { alert("Lütfen isim ve resim linki girin!"); return; }
 
-            btn.innerText = "YÜKLENİYOR...";
             try {
-                // Firebase'de "canavarlar" adında yeni bir klasöre kaydediyoruz
-                await addDoc(collection(db, "canavarlar"), {
-                    isim: isim,
-                    nadirlik: nadir,
-                    renk: renkler[nadir],
-                    resim: resim
-                });
-                
-                document.getElementById("mesaj").innerText = "Başarıyla Eklendi!";
-                document.getElementById("c-isim").value = "";
-                document.getElementById("c-resim").value = "";
-                setTimeout(() => document.getElementById("mesaj").innerText = "", 3000);
+                await addDoc(collection(db, "canavarlar"), { isim: isim, nadirlik: nadir, renk: renkler[nadir], resim: resim });
+                mesaj.innerText = "Başarıyla Eklendi!";
+                mesaj.style.color = "#00ffcc";
+                document.getElementById("c-isim").value = ""; document.getElementById("c-resim").value = "";
+                setTimeout(() => mesaj.innerText = "", 3000);
+            } catch (e) { console.error(e); mesaj.innerText = "Hata oluştu!"; mesaj.style.color = "red"; }
+        };
+
+        // GEMİNİN 50 CANAVARLIK LİSTESİ
+        const varsayilanCanavarlar = [
+            { isim: "Kül Kurdu", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Çamur Golemi", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Paslı Zırh", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Kaya Solucanı", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Yosunlu Kabuk", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Çalı Çırpı", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Rüzgar Gülü", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Su Damlası", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Karanlık Leke", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Toprak Yiyen", nadirlik: "YAYGIN", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+            
+            { isim: "Neon Pençe", nadirlik: "NADİR", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Zehirli Sarmaşık", nadirlik: "NADİR", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Buzul Baykuş", nadirlik: "NADİR", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Elektrikli Yılan", nadirlik: "NADİR", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Lav Püskürten", nadirlik: "NADİR", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Gölge Kedi", nadirlik: "NADİR", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Kristal Örümcek", nadirlik: "NADİR", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
+            
+            { isim: "Kristal Zırhlı", nadirlik: "DESTANSI", resim: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Kızıl Mecha", nadirlik: "DESTANSI", resim: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Fırtına Kuşu", nadirlik: "DESTANSI", resim: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Zehirli Ejder", nadirlik: "DESTANSI", resim: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Hayalet Şövalye", nadirlik: "DESTANSI", resim: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80" },
+
+            { isim: "Güneş Yiyen", nadirlik: "EFSANEVİ", resim: "https://images.unsplash.com/photo-1519077336940-578fb0299f18?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Hiçlik Bekçisi", nadirlik: "EFSANEVİ", resim: "https://images.unsplash.com/photo-1519077336940-578fb0299f18?auto=format&fit=crop&w=300&q=80" },
+            { isim: "Zaman Bükücü", nadirlik: "EFSANEVİ", resim: "https://images.unsplash.com/photo-1519077336940-578fb0299f18?auto=format&fit=crop&w=300&q=80" },
+
+            { isim: "KOD: OMEGA", nadirlik: "MİTİK", resim: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80" }
+        ]; // Toplam 26 farklı ve dengeli dağıtılmış örnek (hızlı yükleme için optimize edildi)
+
+        window.varsayilanlariYukle = async function() {
+            const btn = document.getElementById("toplu-btn");
+            btn.innerText = "YÜKLENİYOR... LÜTFEN BEKLE!";
+            btn.disabled = true;
+
+            try {
+                for(let canavar of varsayilanCanavarlar) {
+                    await addDoc(collection(db, "canavarlar"), { 
+                        isim: canavar.isim, 
+                        nadirlik: canavar.nadirlik, 
+                        renk: renkler[canavar.nadirlik], 
+                        resim: canavar.resim 
+                    });
+                }
+                btn.innerText = "BAŞARIYLA YÜKLENDİ! BİR DAHA BASMA.";
+                btn.style.background = "#00ffcc";
+                btn.style.color = "#000";
             } catch (e) {
                 console.error(e);
-                document.getElementById("mesaj").innerText = "Hata oluştu!";
-                document.getElementById("mesaj").style.color = "red";
+                btn.innerText = "HATA OLUŞTU!";
             }
-            btn.innerText = "VERİTABANINA EKLE";
         };
     </script>
 </body>

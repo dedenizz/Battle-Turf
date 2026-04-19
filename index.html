@@ -111,17 +111,25 @@
                     </div>
             </div>
 
-            <div class="sag-panel">
-                <div class="radar-uyari">⚠ YAKINLARDA BİR TAŞIYICI TESPİT EDİLDİ</div>
-                <div class="kod-kutusu">
+<div class="sag-panel">
+                <div id="radar-durum" class="radar-uyari" style="color: var(--metin-soluk); animation: none;">📡 RADAR: SİNYAL ARANIYOR...</div>
+                
+                <div id="avci-modu" class="kod-kutusu" style="width: 100%;">
                     <p style="color: #666; font-weight: bold; margin-top: 0;">TAŞIYICI KODUNU GİR</p>
-                    <input type="number" id="hedef-kod" class="kod-input" placeholder="----" maxlength="4">
-                    <button class="btn-cevir" onclick="koduCozVeCevir()">KODU ÇÖZ & ÇEVİR</button>
+                    <input type="number" id="hedef-kod" class="kod-input" placeholder="----" maxlength="4" disabled>
+                    <button class="btn-cevir" onclick="koduCozVeCevir()" disabled>KODU ÇÖZ & ÇEVİR</button>
                 </div>
+
+                <div id="tasiyici-modu" class="kod-kutusu" style="display: none; width: 100%; border-color: var(--kirmizi-alarm); box-shadow: inset 0 0 40px rgba(255,51,102,0.4);">
+                    <h2 style="color: var(--kirmizi-alarm); margin-top: 0; animation: yanipSonme 1s infinite;">⚠ SEN TAŞIYICISIN ⚠</h2>
+                    <p style="color: #fff; font-size: 0.9rem;">Diğer avcılar seni arıyor. Kodu onlara göster!</p>
+                    <div style="font-size: 5rem; color: #fff; font-weight: 900; background: var(--kirmizi-alarm); padding: 10px; border-radius: 10px; margin-top: 20px; font-family: 'Roboto Mono', monospace;">
+                        <span id="benim-kodum">0000</span>
+                    </div>
+                </div>
+
                 <button onclick="cikisYap()" style="margin-top: 20px; background: transparent; color: #555; border: 1px solid #555; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Sistemden Çık</button>
             </div>
-        </div>
-    </div>
 
     <div id="gacha-ekrani">
         <div id="gacha-bekleme" class="gacha-kapsul">?</div>
@@ -354,6 +362,53 @@
         };
 
         sistemiBaslat();
+
+
+        // --- 4. AKILLI CANLI RADAR (AVCI & TAŞIYICI KONTROLÜ) ---
+        const tasiyiciRef = doc(db, "gameState", "carrier");
+        
+        onSnapshot(tasiyiciRef, (docSnap) => {
+            const radar = document.getElementById("radar-durum");
+            const avciModu = document.getElementById("avci-modu");
+            const tasiyiciModu = document.getElementById("tasiyici-modu");
+            const kodKutusu = document.getElementById("hedef-kod");
+            const buton = document.querySelector(".btn-cevir");
+            const benimID = localStorage.getItem("oyuncuID");
+
+            if (docSnap.exists() && docSnap.data().durum === "aktif") {
+                const data = docSnap.data();
+
+                if (data.hedefOyuncuID === benimID) {
+                    // EĞER SİSTEM BENİ SEÇTİYSE -> TAŞIYICI EKRANINI AÇ
+                    radar.style.display = "none";
+                    avciModu.style.display = "none";
+                    tasiyiciModu.style.display = "block";
+                    document.getElementById("benim-kodum").innerText = data.aktifKod;
+                } else {
+                    // BAŞKASI SEÇİLDİYSE -> AVCI EKRANINI AÇ VE İSMİNİ RADARDA GÖSTER
+                    radar.style.display = "block";
+                    radar.innerText = `⚠ TAŞIYICI TESPİT EDİLDİ: ${data.hedefIsim.toUpperCase()} ⚠`;
+                    radar.style.color = "var(--kirmizi-alarm)";
+                    radar.style.animation = "yanipSonme 2s infinite";
+                    
+                    tasiyiciModu.style.display = "none";
+                    avciModu.style.display = "block";
+                    kodKutusu.disabled = false;
+                    buton.disabled = false;
+                }
+            } else {
+                // AKTİF BİR OYUN YOKSA
+                radar.style.display = "block";
+                radar.innerText = "📡 RADAR: SİNYAL YOK, HEDEF BEKLENİYOR...";
+                radar.style.color = "var(--metin-soluk)";
+                radar.style.animation = "none";
+                
+                tasiyiciModu.style.display = "none";
+                avciModu.style.display = "block";
+                kodKutusu.disabled = true;
+                buton.disabled = true;
+            }
+        });
     </script>
 </body>
 </html>

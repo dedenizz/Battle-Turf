@@ -146,26 +146,73 @@
 
         // --- DEVASA CANAVAR HAVUZU (RARITY SİSTEMLİ) ---
         // Resimler şu an placeholder. Kendi resimlerini Firebase Storage'a yükleyince bu linkleri değiştireceksin!
+// --- PROJE: SÜRÜ - GENİŞLETİLMİŞ 50 KARAKTERLİK VERİTABANI ---
+        const P_YAYGIN = "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80"; // Gri görsel
+        const P_NADIR = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80";   // Mavi görsel
+        const P_DESTANSI = "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80"; // Mor görsel
+        const P_EFSANE = "https://images.unsplash.com/photo-1519077336940-578fb0299f18?auto=format&fit=crop&w=300&q=80";  // Altın görsel
+        const P_MITIK = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80";   // Kırmızı görsel
+
         const canavarHavuzu = {
-            yaygin: [ // %50 Şans - Gri
-                { isim: "Kül Kurdu", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
-                { isim: "Çamur Golemi", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: "https://images.unsplash.com/photo-1682687982501-1e58f813fb31?auto=format&fit=crop&w=300&q=80" },
-                { isim: "Kemirgen Çekirdek", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80" }
+            yaygin: [ // %50 Şans - 20 Karakter
+                { isim: "Kül Kurdu", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Çamur Golemi", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Kemirgen Çekirdek", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Paslı Zırh", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Kaya Solucanı", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Yosunlu Kabuk", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Çalı Çırpı", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Rüzgar Gülü", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Su Damlası", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Karanlık Leke", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Toprak Yiyen", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Bozkır Faresi", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Toz Bulutu", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Çürük Elma", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Sivrisinek", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Sokak Kedisi", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Kırık Cam", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Bataklık Kurbağası", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Odun Kesen", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
+                { isim: "Kağıt Uçak", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN }
             ],
-            nadir: [ // %30 Şans - Mavi
-                { isim: "Neon Pençe", nadirlik: "NADİR", renk: "#0088ff", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
-                { isim: "Zehirli Sarmaşık", nadirlik: "NADİR", renk: "#0088ff", resim: "https://images.unsplash.com/photo-1610147323479-a7fb11ffd5dd?auto=format&fit=crop&w=300&q=80" },
-                { isim: "Buzul Baykuş", nadirlik: "NADİR", renk: "#0088ff", resim: "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=300&q=80" }
+            nadir: [ // %30 Şans - 15 Karakter
+                { isim: "Neon Pençe", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Zehirli Sarmaşık", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Buzul Baykuş", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Elektrikli Yılan", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Lav Püskürten", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Gölge Kedi", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Kristal Örümcek", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Demir Pençe", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Gümüş Şövalye", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Alevli Yarasa", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Asit Yağmuru", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Hayalet Korsan", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Mekanik Tazı", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Buzdan Kılıç", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
+                { isim: "Gece Nöbetçisi", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR }
             ],
-            destansi: [ // %15 Şans - Mor
-                { isim: "Kristal Zırhlı", nadirlik: "DESTANSI", renk: "#aa00ff", resim: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80" },
-                { isim: "Kızıl Mecha", nadirlik: "DESTANSI", renk: "#aa00ff", resim: "https://images.unsplash.com/photo-1535295972055-1c762f4483e5?auto=format&fit=crop&w=300&q=80" }
+            destansi: [ // %15 Şans - 10 Karakter
+                { isim: "Kristal Zırhlı", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Kızıl Mecha", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Fırtına Kuşu", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Zehirli Ejder", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Hayalet Şövalye", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Plazma Çekirdek", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Orman Gardiyanı", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Volkanik Dev", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Derin Deniz Canavarı", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
+                { isim: "Karanlık Madde", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI }
             ],
-            efsanevi: [ // %4.9 Şans - Altın
-                { isim: "Güneş Yiyen Ejder", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: "https://images.unsplash.com/photo-1519077336940-578fb0299f18?auto=format&fit=crop&w=300&q=80" }
+            efsanevi: [ // %4.9 Şans - 4 Karakter
+                { isim: "Güneş Yiyen", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: P_EFSANE },
+                { isim: "Hiçlik Bekçisi", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: P_EFSANE },
+                { isim: "Zaman Bükücü", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: P_EFSANE },
+                { isim: "Okyanus Hakimi", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: P_EFSANE }
             ],
-            mitik: [ // %0.1 Şans - Kan Kırmızı
-                { isim: "KOD: OMEGA", nadirlik: "MİTİK", renk: "#ff3366", resim: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80" }
+            mitik: [ // %0.1 Şans - Sadece 1 Tane
+                { isim: "KOD: OMEGA", nadirlik: "MİTİK", renk: "#ff3366", resim: P_MITIK }
             ]
         };
 

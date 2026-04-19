@@ -2,55 +2,29 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sürü - TAŞIYICI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
-    
+    <title>Sürü - YÖNETİCİ PANELİ</title>
     <style>
-        body {
-            margin: 0; padding: 0; background-color: #050505; color: #fff;
-            font-family: 'Roboto Mono', monospace; height: 100vh;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            overflow: hidden;
-        }
-
-        .uyari {
-            color: #ff3366; font-size: 1.5rem; letter-spacing: 5px; margin-bottom: 20px;
-            animation: flash 1s infinite alternate; text-align: center;
-        }
-
-        .kod-ekrani {
-            font-size: 12rem; font-weight: 700; color: #00ffcc;
-            text-shadow: 0 0 20px rgba(0, 255, 204, 0.5), 0 0 50px rgba(0, 255, 204, 0.3);
-            letter-spacing: 20px; margin-left: 20px; /* Ortalamayı düzeltmek için */
-        }
-
-        .btn-baslat {
-            margin-top: 50px; background: transparent; border: 2px solid #00ffcc;
-            color: #00ffcc; padding: 20px 40px; font-size: 1.5rem; font-family: inherit;
-            border-radius: 10px; cursor: pointer; transition: 0.3s;
-            text-transform: uppercase; letter-spacing: 3px;
-        }
-
-        .btn-baslat:hover {
-            background: #00ffcc; color: #000; box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
-        }
-
-        @keyframes flash {
-            from { opacity: 1; }
-            to { opacity: 0.3; }
-        }
+        body { background: #050505; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 50px; }
+        .kutu { border: 2px solid #00ffcc; padding: 20px; display: inline-block; border-radius: 10px; margin-top: 20px;}
+        button { background: #00ffcc; color: #000; padding: 15px 30px; font-weight: bold; cursor: pointer; border: none; font-size: 1.2rem; margin-top: 20px;}
     </style>
 </head>
 <body>
 
-    <div class="uyari">SİSTEM YÜKLENİYOR...</div>
-    <div class="kod-ekrani" id="aktif-kod">----</div>
-    <button class="btn-baslat" id="kod-uret-btn" onclick="yeniKodUret()">Sinyali Başlat</button>
+    <h1>SİSTEM YÖNETİCİSİ (GAME MASTER)</h1>
+    <p>Bu ekranı kapatma. Oyunun otomatik çalışmasını sağlar.</p>
+    
+    <div class="kutu">
+        <h3>ŞU ANKİ TAŞIYICI: <span id="aktif-tasiyici" style="color: #ff3366;">YOK</span></h3>
+        <h1 id="aktif-kod" style="font-size: 4rem; margin: 10px;">----</h1>
+    </div><br>
+
+    <button id="dongu-btn" onclick="donguyuBaslat()">OTOMATİK DÖNGÜYÜ BAŞLAT</button>
+    <p id="durum-log" style="color: #888; margin-top: 20px;"></p>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
@@ -64,46 +38,58 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Yeni Taşıyıcı Kodu Üret ve Veritabanına Yaz
-        window.yeniKodUret = async function() {
-            const uyariMetni = document.querySelector(".uyari");
-            const kodEkrani = document.getElementById("aktif-kod");
-            const btn = document.getElementById("kod-uret-btn");
+        let donguAktif = false;
+        let timer;
 
-            // Butonu geçici olarak devre dışı bırak
-            btn.disabled = true;
-            btn.style.opacity = "0.5";
-            uyariMetni.innerText = "VERİTABANINA BAĞLANILIYOR...";
-            uyariMetni.style.color = "#888";
-
-            // Rastgele 4 haneli kod oluştur (1000 ile 9999 arası)
-            const yeniKod = Math.floor(1000 + Math.random() * 9000).toString();
+        async function yeniTasiyiciSec() {
+            const log = document.getElementById("durum-log");
+            log.innerText = "Veritabanından oyuncular çekiliyor...";
 
             try {
-                // Kodu Firebase'de "gameState" klasörünün içindeki "carrier" dosyasına yaz!
+                // Bütün oyuncuları bul
+                const snap = await getDocs(collection(db, "players"));
+                const oyuncular = [];
+                snap.forEach(doc => oyuncular.push({ id: doc.id, isim: doc.data().isim }));
+
+                if (oyuncular.length === 0) {
+                    log.innerText = "Sistemde hiç oyuncu yok! Bekleniyor...";
+                    return;
+                }
+
+                // Rastgele birini seç ve kod üret
+                const secilen = oyuncular[Math.floor(Math.random() * oyuncular.length)];
+                const yeniKod = Math.floor(1000 + Math.random() * 9000).toString();
+
+                // Firebase'e yaz
                 await setDoc(doc(db, "gameState", "carrier"), {
+                    hedefOyuncuID: secilen.id,
+                    hedefIsim: secilen.isim,
                     aktifKod: yeniKod,
-                    olusturmaZamani: Date.now(),
-                    durum: "aktif"
+                    durum: "aktif",
+                    zamanDamgasi: Date.now()
                 });
 
-                // Ekranda göster
-                uyariMetni.innerText = "⚠ AKTİF TAŞIYICI SİNYALİ YAYINLANIYOR ⚠";
-                uyariMetni.style.color = "#ff3366";
-                kodEkrani.innerText = yeniKod;
-                
-            } catch (e) {
-                console.error("Hata:", e);
-                uyariMetni.innerText = "BAĞLANTI HATASI!";
-            } finally {
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                btn.innerText = "YENİ KOD ÜRET";
-            }
-        };
+                document.getElementById("aktif-tasiyici").innerText = secilen.isim.toUpperCase();
+                document.getElementById("aktif-kod").innerText = yeniKod;
+                log.innerText = "Yeni taşıyıcı atandı. Sıradaki değişim bekleniyor...";
 
-        // Sayfa açıldığında hazır bekle
-        document.querySelector(".uyari").innerText = "SİSTEM HAZIR. SİNYAL BEKLENİYOR.";
+            } catch (e) {
+                console.error(e);
+                log.innerText = "Hata oluştu!";
+            }
+        }
+
+        window.donguyuBaslat = function() {
+            if (donguAktif) return;
+            donguAktif = true;
+            document.getElementById("dongu-btn").innerText = "DÖNGÜ ÇALIŞIYOR (HER 3 DAKİKADA BİR DEĞİŞECEK)";
+            document.getElementById("dongu-btn").style.background = "#555";
+            document.getElementById("dongu-btn").style.color = "#fff";
+            
+            yeniTasiyiciSec(); // Hemen ilk kişiyi seç
+            // Her 3 dakikada bir (180.000 milisaniye) yeni kişiyi seç
+            timer = setInterval(yeniTasiyiciSec, 180000); 
+        };
     </script>
 </body>
 </html>

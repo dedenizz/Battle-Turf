@@ -8,53 +8,40 @@
     
     <style>
         :root {
-            --arka-plan: #0f1015;
-            --panel: #1a1c23;
-            --vurgu-renk: #00ffcc;
-            --kirmizi-alarm: #ff3366;
-            --metin: #ffffff;
-            --metin-soluk: #8a8d98;
+            --arka-plan: #0f1015; --panel: #1a1c23; --vurgu-renk: #00ffcc;
+            --kirmizi-alarm: #ff3366; --metin: #ffffff; --metin-soluk: #8a8d98;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            margin: 0; padding: 0; background-color: var(--arka-plan); color: var(--metin); 
-            font-family: 'Montserrat', sans-serif; height: 100vh; display: flex; flex-direction: column; 
-            overflow: hidden;
-        }
+        body { margin: 0; padding: 0; background-color: var(--arka-plan); color: var(--metin); font-family: 'Montserrat', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* --- GİRİŞ EKRANI --- */
-        #giris-ekrani {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--arka-plan); z-index: 100; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-        }
+        #giris-ekrani { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--arka-plan); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .giris-kutu { background: var(--panel); padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #2a2c35; }
-        .input-text { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 1.2rem; text-align: center; outline: none; font-family: 'Roboto Mono', monospace; text-transform: lowercase; }
+        .input-text { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 1.2rem; text-align: center; outline: none; font-family: 'Roboto Mono', monospace; }
+        #kullanici-adi { text-transform: lowercase; }
+        #kullanici-pin { letter-spacing: 5px; }
         .input-text:focus { border-color: var(--vurgu-renk); }
         .btn { background: var(--metin); color: #000; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: 900; border-radius: 10px; cursor: pointer; width: 100%; transition: 0.2s; text-transform: uppercase; }
         .btn:hover { background: var(--vurgu-renk); transform: scale(0.98); }
 
-        /* --- ÜST BİLGİ ÇUBUĞU --- */
         .ust-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: var(--panel); border-bottom: 1px solid #2a2c35; }
         .oyuncu-isim { font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
         .oyuncu-rutbe { font-size: 0.8rem; color: var(--vurgu-renk); text-transform: uppercase; letter-spacing: 2px; }
 
-        /* --- ANA iPAD EKRANI --- */
         .ana-ekran { display: flex; flex: 1; height: calc(100vh - 80px); }
-        
         .sol-panel { flex: 1; padding: 30px; overflow-y: auto; border-right: 1px solid #2a2c35; }
         .baslik { font-size: 1.2rem; color: var(--metin-soluk); margin-bottom: 20px; font-weight: 700; letter-spacing: 1px; }
         
+        /* KOLEKSİYON KARTLARI */
         .koleksiyon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-        .canavar-kart { background: #111; border: 1px solid #333; border-radius: 15px; padding: 15px; text-align: center; position: relative; }
-        .canavar-resim { width: 100px; height: 100px; background: #222; border-radius: 10px; margin: 0 auto 10px auto; display: flex; justify-content: center; align-items: center; color: #555; font-size: 2rem; border: 1px dashed #444;}
-        .canavar-isim { font-weight: 700; font-size: 0.9rem; margin-bottom: 5px; }
-        .nadir-etiket { font-size: 0.7rem; font-weight: 900; padding: 3px 8px; border-radius: 5px; background: #333; display: inline-block; }
-        
+        .canavar-kart { background: #111; border: 1px solid #333; border-radius: 15px; padding: 15px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .canavar-resim { width: 100%; height: 110px; background: #222; border-radius: 10px; margin: 0 auto 10px auto; overflow: hidden; border: 1px solid #444; }
+        .canavar-resim img { width: 100%; height: 100%; object-fit: cover; }
+        .canavar-isim { font-weight: 900; font-size: 0.95rem; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .nadir-etiket { font-size: 0.7rem; font-weight: 900; padding: 4px 8px; border-radius: 5px; background: #000; display: inline-block; letter-spacing: 1px; }
+
         .sag-panel { width: 400px; background: #14151b; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; position: relative; }
-        .radar-uyari { color: var(--kirmizi-alarm); font-weight: 900; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 40px; text-align: center; animation: yanipSonme 2s infinite; }
+        .radar-uyari { color: var(--kirmizi-alarm); font-weight: 900; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 40px; text-align: center; }
         @keyframes yanipSonme { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         .kod-kutusu { background: #000; border: 2px solid #333; border-radius: 15px; padding: 30px; text-align: center; width: 100%; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
@@ -62,32 +49,28 @@
         .kod-input::placeholder { color: #333; }
         
         .btn-cevir { background: var(--kirmizi-alarm); color: #fff; padding: 20px; font-size: 1.3rem; border-radius: 10px; width: 100%; font-weight: 900; letter-spacing: 2px; border: none; cursor: pointer; transition: 0.2s; box-shadow: 0 10px 20px rgba(255, 51, 102, 0.2); }
-        .btn-cevir:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 51, 102, 0.4); }
+        .btn-cevir:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 51, 102, 0.4); }
+        .btn-cevir:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
 
-        /* --- GACHA EKRANI --- */
-        #gacha-ekrani {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95);
-            z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .gacha-kapsul { width: 200px; height: 200px; background: #222; border-radius: 50%; border: 5px solid var(--vurgu-renk); box-shadow: 0 0 50px rgba(0, 255, 204, 0.5); display: flex; justify-content: center; align-items: center; font-size: 5rem; animation: titreme 2s ease-in-out infinite; }
-        @keyframes titreme { 0% { transform: scale(1) rotate(0deg); } 25% { transform: scale(1.1) rotate(-5deg); } 50% { transform: scale(1.1) rotate(5deg); } 75% { transform: scale(1.1) rotate(-5deg); } 100% { transform: scale(1) rotate(0deg); } }
+        /* GACHA EKRANI */
+        #gacha-ekrani { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .gacha-kapsul { width: 200px; height: 200px; background: #111; border-radius: 50%; border: 5px solid #555; display: flex; justify-content: center; align-items: center; font-size: 5rem; animation: hizliTitre 0.1s infinite; }
+        @keyframes hizliTitre { 0% { transform: translate(2px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(0px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(2px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(2px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
         
         .gacha-sonuc { display: none; text-align: center; animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes dropIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .yeni-resim { width: 200px; height: 200px; background: #fff; border-radius: 20px; margin-bottom: 20px; }
-        
+        .yeni-resim { width: 250px; height: 250px; background: #000; border-radius: 20px; margin-bottom: 20px; border: 4px solid #fff; box-shadow: 0 0 50px rgba(255,255,255,0.2); overflow: hidden; }
+        .yeni-resim img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
-<div id="giris-ekrani">
+    <div id="giris-ekrani">
         <div class="giris-kutu">
             <h1 style="font-size: 2.5rem; margin-bottom: 10px;">PROJE: SÜRÜ</h1>
-            <p style="color: var(--metin-soluk);">Sisteme bağlanmak için adını ve şifreni gir.</p>
-            
+            <p style="color: var(--metin-soluk);">Sisteme bağlanmak için adını ve PIN'ini gir.</p>
             <input type="text" id="kullanici-adi" class="input-text" placeholder="İSİM" maxlength="12">
-            <input type="password" id="kullanici-pin" class="input-text" placeholder="4 HANELİ PİN" maxlength="4" style="margin-top: 0; text-transform: none; letter-spacing: 5px;">
-            
+            <input type="password" id="kullanici-pin" class="input-text" placeholder="4 HANELİ PİN" maxlength="4">
             <button class="btn" onclick="hesapOlustur()">BAĞLAN</button>
             <p id="giris-durum" style="margin-top: 15px; color: var(--kirmizi-alarm); font-weight: bold;"></p>
         </div>
@@ -107,11 +90,10 @@
         <div class="ana-ekran">
             <div class="sol-panel">
                 <div class="baslik">KOLEKSİYONUN</div>
-                <div class="koleksiyon-grid" id="envanter-listesi">
-                    </div>
+                <div class="koleksiyon-grid" id="envanter-listesi"></div>
             </div>
 
-<div class="sag-panel">
+            <div class="sag-panel">
                 <div id="radar-durum" class="radar-uyari" style="color: var(--metin-soluk); animation: none;">📡 RADAR: SİNYAL ARANIYOR...</div>
                 
                 <div id="avci-modu" class="kod-kutusu" style="width: 100%;">
@@ -127,25 +109,26 @@
                         <span id="benim-kodum">0000</span>
                     </div>
                 </div>
-
                 <button onclick="cikisYap()" style="margin-top: 20px; background: transparent; color: #555; border: 1px solid #555; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Sistemden Çık</button>
             </div>
+        </div>
+    </div>
 
     <div id="gacha-ekrani">
         <div id="gacha-bekleme" class="gacha-kapsul">?</div>
         <div id="gacha-sonuc" class="gacha-sonuc">
-            <h2 style="color: var(--vurgu-renk); letter-spacing: 5px; margin-bottom: 20px;">VERİ ÇEKİLDİ!</h2>
-            <div class="yeni-resim">
-                <div id="yeni-canavar-placeholder" style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:#000; font-size:4rem; background:#fff; border-radius:20px;">✨</div>
+            <h2 id="gacha-baslik" style="color: var(--vurgu-renk); letter-spacing: 5px; margin-bottom: 20px;">VERİ ÇEKİLDİ!</h2>
+            <div class="yeni-resim" id="gacha-resim-cerceve">
+                <img id="yeni-canavar-img" src="" alt="Canavar">
             </div>
-            <h1 id="yeni-canavar-isim" style="font-size: 2.5rem; margin-bottom: 10px;">---</h1>
-            <p id="yeni-canavar-nadir" style="color: var(--metin-soluk); font-size: 1.2rem; text-transform: uppercase;">---</p>
+            <h1 id="yeni-canavar-isim" style="font-size: 2.5rem; margin-bottom: 5px;">---</h1>
+            <p id="yeni-canavar-nadir" class="nadir-etiket" style="font-size: 1.2rem; margin-bottom: 20px;">---</p>
             <br>
-            <button class="btn" style="width: 250px; background: var(--vurgu-renk);" onclick="gachaKapat()">KABUL ET</button>
+            <button class="btn" style="width: 250px; background: #fff;" onclick="gachaKapat()">KABUL ET</button>
         </div>
     </div>
 
-   <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDoc, getDocs, query, where, doc, updateDoc, arrayUnion, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -161,25 +144,38 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const canavarHavuzu = [
-            { isim: "Kül Kurdu", nadirlik: "Yaygın", renk: "#aaa" },
-            { isim: "Gölge Sürüngeni", nadirlik: "Yaygın", renk: "#aaa" },
-            { isim: "Neon Pençe", nadirlik: "Nadir", renk: "#0088ff" },
-            { isim: "Kristal Zırhlı", nadirlik: "Destansı", renk: "#aa00ff" },
-            { isim: "Hiçlik Ejderi", nadirlik: "Efsanevi", renk: "#ffaa00" }
-        ];
+        // --- DEVASA CANAVAR HAVUZU (RARITY SİSTEMLİ) ---
+        // Resimler şu an placeholder. Kendi resimlerini Firebase Storage'a yükleyince bu linkleri değiştireceksin!
+        const canavarHavuzu = {
+            yaygin: [ // %50 Şans - Gri
+                { isim: "Kül Kurdu", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: "https://images.unsplash.com/photo-1601314167099-23277564d6db?auto=format&fit=crop&w=300&q=80" },
+                { isim: "Çamur Golemi", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: "https://images.unsplash.com/photo-1682687982501-1e58f813fb31?auto=format&fit=crop&w=300&q=80" },
+                { isim: "Kemirgen Çekirdek", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80" }
+            ],
+            nadir: [ // %30 Şans - Mavi
+                { isim: "Neon Pençe", nadirlik: "NADİR", renk: "#0088ff", resim: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
+                { isim: "Zehirli Sarmaşık", nadirlik: "NADİR", renk: "#0088ff", resim: "https://images.unsplash.com/photo-1610147323479-a7fb11ffd5dd?auto=format&fit=crop&w=300&q=80" },
+                { isim: "Buzul Baykuş", nadirlik: "NADİR", renk: "#0088ff", resim: "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=300&q=80" }
+            ],
+            destansi: [ // %15 Şans - Mor
+                { isim: "Kristal Zırhlı", nadirlik: "DESTANSI", renk: "#aa00ff", resim: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80" },
+                { isim: "Kızıl Mecha", nadirlik: "DESTANSI", renk: "#aa00ff", resim: "https://images.unsplash.com/photo-1535295972055-1c762f4483e5?auto=format&fit=crop&w=300&q=80" }
+            ],
+            efsanevi: [ // %4.9 Şans - Altın
+                { isim: "Güneş Yiyen Ejder", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: "https://images.unsplash.com/photo-1519077336940-578fb0299f18?auto=format&fit=crop&w=300&q=80" }
+            ],
+            mitik: [ // %0.1 Şans - Kan Kırmızı
+                { isim: "KOD: OMEGA", nadirlik: "MİTİK", renk: "#ff3366", resim: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80" }
+            ]
+        };
 
         let oyuncuEnvanteri = []; 
 
-        // --- 1. GİRİŞ VE SİSTEMİ BAŞLATMA ---
         window.hesapOlustur = async function() {
             const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();
             const pin = document.getElementById("kullanici-pin").value.trim();
             const durum = document.getElementById("giris-durum");
-
-            if (kullaniciAdi.length < 3 || pin.length !== 4) {
-                durum.innerText = "Hatalı İsim veya PIN."; return;
-            }
+            if (kullaniciAdi.length < 3 || pin.length !== 4) { durum.innerText = "Hatalı İsim veya PIN."; return; }
 
             try {
                 const playersRef = collection(db, "players");
@@ -192,9 +188,7 @@
                         localStorage.setItem("oyuncuID", playerData.id);
                         localStorage.setItem("oyuncuIsim", playerData.data().isim);
                         sistemiBaslat();
-                    } else {
-                        durum.innerText = "Hatalı PIN!";
-                    }
+                    } else { durum.innerText = "Hatalı PIN!"; }
                 } else {
                     const docRef = await addDoc(collection(db, "players"), {
                         isim: kullaniciAdi, pin: pin, seviye: 1, kapasite: 50, envanter: []
@@ -213,17 +207,41 @@
                 document.getElementById("giris-ekrani").style.display = "none";
                 document.getElementById("ana-uygulama").style.display = "flex";
                 document.getElementById("ekran-isim").innerText = isim.toUpperCase();
-                
                 const veri = await getDoc(doc(db, "players", id));
                 if (veri.exists()) {
                     oyuncuEnvanteri = veri.data().envanter || [];
-                    document.getElementById("koleksiyon-sayisi").innerText = oyuncuEnvanteri.length;
+                    arayuzuGuncelle();
                 }
             }
         };
 
-        // --- 2. OTOMATİK TENEFFÜS YÖNETİCİSİ (DERS PROGRAMI) ---
+        function arayuzuGuncelle() {
+            const grid = document.getElementById("envanter-listesi");
+            document.getElementById("koleksiyon-sayisi").innerText = oyuncuEnvanteri.length;
+            grid.innerHTML = ""; 
+
+            // Canavarları nadirliğe göre sırala (Mitik en üstte)
+            const nadirlikSirasi = { "MİTİK": 5, "EFSANEVİ": 4, "DESTANSI": 3, "NADİR": 2, "YAYGIN": 1 };
+            oyuncuEnvanteri.sort((a, b) => nadirlikSirasi[b.nadirlik] - nadirlikSirasi[a.nadirlik]);
+
+            oyuncuEnvanteri.forEach(canavar => {
+                const kart = document.createElement("div");
+                kart.className = "canavar-kart";
+                kart.style.borderColor = canavar.renk;
+                // Kartın içine resmi koyuyoruz
+                kart.innerHTML = `
+                    <div class="canavar-resim">
+                        <img src="${canavar.resim}" alt="${canavar.isim}">
+                    </div>
+                    <div class="canavar-isim" style="color: ${canavar.renk};">${canavar.isim}</div>
+                    <div class="nadir-etiket" style="color: ${canavar.renk}; border: 1px solid ${canavar.renk}">${canavar.nadirlik}</div>
+                `;
+                grid.appendChild(kart);
+            });
+        }
+
         const teneffusler = [
+            { id: "TEST_MODU", bas: "00:00", bit: "23:59" }, // TENEFFÜS KİLİDİ AÇIK (TEST İÇİN)
             { id: "Sabah_Teneffusu", bas: "09:30", bit: "09:50" },
             { id: "Ikinci_Teneffus", bas: "11:05", bit: "11:15" },
             { id: "Ucuncu_Teneffus", bas: "11:55", bit: "12:05" },
@@ -232,58 +250,35 @@
             { id: "Son_Teneffus", bas: "14:55", bit: "15:00" }
         ];
 
-        function saatiAl() {
-            const d = new Date();
-            return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
-        }
+        function saatiAl() { const d = new Date(); return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0'); }
 
         async function zamanlayiciKontrol() {
             const anlikSaat = saatiAl();
             let aktifTeneffus = null;
-
-            for (let t of teneffusler) {
-                if (anlikSaat >= t.bas && anlikSaat < t.bit) {
-                    aktifTeneffus = t; break;
-                }
-            }
-
+            for (let t of teneffusler) { if (anlikSaat >= t.bas && anlikSaat < t.bit) { aktifTeneffus = t; break; } }
             const tRef = doc(db, "gameState", "carrier");
             const snap = await getDoc(tRef);
 
             if (aktifTeneffus) {
-                // TENEFFÜSTEYİZ: Eğer bu teneffüs için henüz taşıyıcı atanmadıysa hemen ata
                 if (!snap.exists() || snap.data().sonTeneffusID !== aktifTeneffus.id) {
                     await setDoc(tRef, { sonTeneffusID: aktifTeneffus.id, durum: "seciliyor" }, { merge: true });
-                    
                     const oyuncularSnap = await getDocs(collection(db, "players"));
                     const oyuncular = [];
                     oyuncularSnap.forEach(d => oyuncular.push({ id: d.id, isim: d.data().isim }));
-
                     if (oyuncular.length > 0) {
                         const secilen = oyuncular[Math.floor(Math.random() * oyuncular.length)];
                         const kod = Math.floor(1000 + Math.random() * 9000).toString();
-                        
-                        await setDoc(tRef, {
-                            hedefOyuncuID: secilen.id,
-                            hedefIsim: secilen.isim,
-                            aktifKod: kod,
-                            durum: "aktif",
-                            sonTeneffusID: aktifTeneffus.id
-                        });
+                        await setDoc(tRef, { hedefOyuncuID: secilen.id, hedefIsim: secilen.isim, aktifKod: kod, durum: "aktif", sonTeneffusID: aktifTeneffus.id });
                     }
                 }
             } else {
-                // DERSTEYİZ: Oyunu pasif hale getir
-                if (snap.exists() && snap.data().durum === "aktif") {
-                    await updateDoc(tRef, { durum: "pasif" });
-                }
+                if (snap.exists() && snap.data().durum === "aktif") { await updateDoc(tRef, { durum: "pasif" }); }
             }
         }
         
-        // Her 15 saniyede bir saati kontrol et
+        zamanlayiciKontrol();
         setInterval(zamanlayiciKontrol, 15000);
 
-        // --- 3. AKILLI RADAR VE GACHA KONTROLÜ ---
         const tasiyiciRef = doc(db, "gameState", "carrier");
         onSnapshot(tasiyiciRef, (docSnap) => {
             const radar = document.getElementById("radar-durum");
@@ -296,32 +291,23 @@
             if (docSnap.exists() && docSnap.data().durum === "aktif") {
                 const data = docSnap.data();
                 if (data.hedefOyuncuID === benimID) {
-                    // BEN SEÇİLDİM (TAŞIYICI MODU)
-                    radar.style.display = "none";
-                    avciModu.style.display = "none";
-                    tasiyiciModu.style.display = "block";
+                    radar.style.display = "none"; avciModu.style.display = "none"; tasiyiciModu.style.display = "block";
                     document.getElementById("benim-kodum").innerText = data.aktifKod;
                 } else {
-                    // BAŞKASI SEÇİLDİ (AVCI MODU)
-                    radar.style.display = "block";
-                    tasiyiciModu.style.display = "none";
-                    avciModu.style.display = "block";
+                    radar.style.display = "block"; tasiyiciModu.style.display = "none"; avciModu.style.display = "block";
                     radar.innerText = `⚠ HEDEF TESPİT EDİLDİ: ${data.hedefIsim.toUpperCase()} ⚠`;
-                    radar.style.color = "var(--kirmizi-alarm)";
+                    radar.style.color = "var(--kirmizi-alarm)"; radar.style.animation = "yanipSonme 2s infinite";
                     kodKutusu.disabled = false; buton.disabled = false;
                 }
             } else {
-                // DERSTEYİZ EKRANI KİLİTLE
-                radar.style.display = "block";
-                tasiyiciModu.style.display = "none";
-                avciModu.style.display = "block";
+                radar.style.display = "block"; tasiyiciModu.style.display = "none"; avciModu.style.display = "block";
                 radar.innerText = "SİSTEM KAPALI: DERS SAATİ (Zili Bekleyin)";
-                radar.style.color = "var(--metin-soluk)";
+                radar.style.color = "var(--metin-soluk)"; radar.style.animation = "none";
                 kodKutusu.disabled = true; buton.disabled = true;
             }
         });
 
-        // Gacha Doğrulama
+        // GACHA ALGORİTMASI (DROP RATES)
         window.koduCozVeCevir = async function() {
             const girilenKod = document.getElementById("hedef-kod").value.trim();
             const snap = await getDoc(tasiyiciRef);
@@ -329,15 +315,51 @@
             if (snap.exists() && snap.data().aktifKod === girilenKod && snap.data().durum === "aktif") {
                 document.getElementById("hedef-kod").value = "";
                 document.getElementById("gacha-ekrani").style.display = "flex";
+                document.getElementById("gacha-bekleme").style.display = "flex";
+                document.getElementById("gacha-sonuc").style.display = "none";
                 
-                const c = canavarHavuzu[Math.floor(Math.random() * canavarHavuzu.length)];
-                document.getElementById("yeni-canavar-isim").innerText = c.isim;
+                // ŞANS HESAPLAMASI (RNG)
+                const sans = Math.random() * 100; // 0 ile 100 arası sayı
+                let havuzSecimi;
+
+                if (sans <= 0.1) havuzSecimi = canavarHavuzu.mitik;           // %0.1 İhtimal
+                else if (sans <= 5) havuzSecimi = canavarHavuzu.efsanevi;     // %4.9 İhtimal
+                else if (sans <= 20) havuzSecimi = canavarHavuzu.destansi;    // %15 İhtimal
+                else if (sans <= 50) havuzSecimi = canavarHavuzu.nadir;       // %30 İhtimal
+                else havuzSecimi = canavarHavuzu.yaygin;                      // %50 İhtimal
+
+                // Seçilen havuzdan rastgele bir canavar al
+                const kazanilanCanavar = havuzSecimi[Math.floor(Math.random() * havuzSecimi.length)];
                 
                 setTimeout(async () => {
+                    // Firebase'e kaydet
                     const id = localStorage.getItem("oyuncuID");
-                    await updateDoc(doc(db, "players", id), { envanter: arrayUnion(c) });
+                    await updateDoc(doc(db, "players", id), { envanter: arrayUnion(kazanilanCanavar) });
+                    
+                    // Arayüzü güncelle
+                    oyuncuEnvanteri.push(kazanilanCanavar);
+                    arayuzuGuncelle();
+
+                    // Gacha Sonuç Ekranını Hazırla (RENKLER VE RESİMLER)
+                    document.getElementById("gacha-bekleme").style.display = "none";
                     document.getElementById("gacha-sonuc").style.display = "block";
-                }, 2000);
+                    
+                    const resim = document.getElementById("yeni-canavar-img");
+                    resim.src = kazanilanCanavar.resim;
+                    
+                    document.getElementById("gacha-resim-cerceve").style.borderColor = kazanilanCanavar.renk;
+                    document.getElementById("gacha-baslik").style.color = kazanilanCanavar.renk;
+                    
+                    const isimMetni = document.getElementById("yeni-canavar-isim");
+                    isimMetni.innerText = kazanilanCanavar.isim;
+                    isimMetni.style.color = kazanilanCanavar.renk;
+                    
+                    const nadirlikMetni = document.getElementById("yeni-canavar-nadir");
+                    nadirlikMetni.innerText = kazanilanCanavar.nadirlik;
+                    nadirlikMetni.style.color = kazanilanCanavar.renk;
+                    nadirlikMetni.style.borderColor = kazanilanCanavar.renk;
+
+                }, 2500); // Kutu 2.5 saniye titrer
             } else {
                 alert("GEÇERSİZ KOD!");
             }
@@ -346,7 +368,6 @@
         window.gachaKapat = () => document.getElementById("gacha-ekrani").style.display = "none";
         window.cikisYap = () => { localStorage.clear(); location.reload(); };
 
-        sistemiBaslat();
     </script>
 </body>
 </html>

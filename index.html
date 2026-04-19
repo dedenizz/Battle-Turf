@@ -153,68 +153,35 @@
         const P_EFSANE = "https://images.unsplash.com/photo-1519077336940-578fb0299f18?auto=format&fit=crop&w=300&q=80";  // Altın görsel
         const P_MITIK = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80";   // Kırmızı görsel
 
-        const canavarHavuzu = {
-            yaygin: [ // %50 Şans - 20 Karakter
-                { isim: "Kül Kurdu", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Çamur Golemi", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Kemirgen Çekirdek", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Paslı Zırh", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Kaya Solucanı", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Yosunlu Kabuk", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Çalı Çırpı", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Rüzgar Gülü", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Su Damlası", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Karanlık Leke", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Toprak Yiyen", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Bozkır Faresi", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Toz Bulutu", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Çürük Elma", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Sivrisinek", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Sokak Kedisi", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Kırık Cam", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Bataklık Kurbağası", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Odun Kesen", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN },
-                { isim: "Kağıt Uçak", nadirlik: "YAYGIN", renk: "#a0a0a0", resim: P_YAYGIN }
-            ],
-            nadir: [ // %30 Şans - 15 Karakter
-                { isim: "Neon Pençe", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Zehirli Sarmaşık", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Buzul Baykuş", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Elektrikli Yılan", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Lav Püskürten", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Gölge Kedi", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Kristal Örümcek", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Demir Pençe", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Gümüş Şövalye", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Alevli Yarasa", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Asit Yağmuru", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Hayalet Korsan", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Mekanik Tazı", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Buzdan Kılıç", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR },
-                { isim: "Gece Nöbetçisi", nadirlik: "NADİR", renk: "#0088ff", resim: P_NADIR }
-            ],
-            destansi: [ // %15 Şans - 10 Karakter
-                { isim: "Kristal Zırhlı", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Kızıl Mecha", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Fırtına Kuşu", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Zehirli Ejder", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Hayalet Şövalye", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Plazma Çekirdek", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Orman Gardiyanı", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Volkanik Dev", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Derin Deniz Canavarı", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI },
-                { isim: "Karanlık Madde", nadirlik: "DESTANSI", renk: "#aa00ff", resim: P_DESTANSI }
-            ],
-            efsanevi: [ // %4.9 Şans - 4 Karakter
-                { isim: "Güneş Yiyen", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: P_EFSANE },
-                { isim: "Hiçlik Bekçisi", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: P_EFSANE },
-                { isim: "Zaman Bükücü", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: P_EFSANE },
-                { isim: "Okyanus Hakimi", nadirlik: "EFSANEVİ", renk: "#ffaa00", resim: P_EFSANE }
-            ],
-            mitik: [ // %0.1 Şans - Sadece 1 Tane
-                { isim: "KOD: OMEGA", nadirlik: "MİTİK", renk: "#ff3366", resim: P_MITIK }
-            ]
+// --- DİNAMİK CANAVAR HAVUZU (VERİTABANINDAN ÇEKİLİR) ---
+        let canavarHavuzu = {
+            yaygin: [],
+            nadir: [],
+            destansi: [],
+            efsanevi: [],
+            mitik: []
         };
+
+        // Oyun başlarken veritabanındaki tüm canavarları havuzlara doldur
+        async function canavarlariGetir() {
+            try {
+                const snap = await getDocs(collection(db, "canavarlar"));
+                snap.forEach(doc => {
+                    const c = doc.data();
+                    if (c.nadirlik === "YAYGIN") canavarHavuzu.yaygin.push(c);
+                    else if (c.nadirlik === "NADİR") canavarHavuzu.nadir.push(c);
+                    else if (c.nadirlik === "DESTANSI") canavarHavuzu.destansi.push(c);
+                    else if (c.nadirlik === "EFSANEVİ") canavarHavuzu.efsanevi.push(c);
+                    else if (c.nadirlik === "MİTİK") canavarHavuzu.mitik.push(c);
+                });
+                console.log("Canavarlar yüklendi! Toplam:", snap.size);
+            } catch (e) {
+                console.error("Canavarlar çekilirken hata oluştu:", e);
+            }
+        }
+
+        // Sistemi başlat fonksiyonunun hemen en üstünde bu çağırmayı yapmalısın:
+        // window.sistemiBaslat = async function() { ... içindeki kodların en üstüne ekle:
 
         let oyuncuEnvanteri = []; 
 

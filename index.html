@@ -21,8 +21,10 @@
         #kullanici-adi { text-transform: lowercase; }
         #kullanici-pin { letter-spacing: 5px; }
         .input-text:focus { border-color: var(--vurgu-renk); }
+        .input-text:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn { background: var(--metin); color: #000; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: 900; border-radius: 10px; cursor: pointer; width: 100%; transition: 0.2s; text-transform: uppercase; }
-        .btn:hover { background: var(--vurgu-renk); transform: scale(0.98); }
+        .btn:hover:not(:disabled) { background: var(--vurgu-renk); transform: scale(0.98); }
+        .btn:disabled { background: #555; color: #222; cursor: not-allowed; }
 
         .ust-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--panel); border-bottom: 1px solid #2a2c35; flex-wrap: wrap; gap: 10px; }
         .oyuncu-isim { font-size: 1.3rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
@@ -89,6 +91,8 @@
             <input type="password" id="kullanici-pin" class="input-text" placeholder="4 HANELİ PİN" maxlength="4" pattern="\d*">
             <button class="btn" id="baglan-btn" onclick="hesapOlustur()">SİSTEM YÜKLENİYOR...</button>
             <p id="giris-durum" style="margin-top: 15px; color: var(--kirmizi-alarm); font-weight: bold;"></p>
+            
+            <button onclick="muhruSifirla()" style="margin-top: 10px; background: transparent; color: #555; border: 1px solid #555; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">Cihaz Mührünü Sıfırla</button>
         </div>
     </div>
 
@@ -182,21 +186,38 @@
             }
         };
 
+        // YENİ EKLENDİ: Geliştiricinin sıkışmaması için cihaz mührünü kırma fonksiyonu
+        window.muhruSifirla = function() {
+            localStorage.removeItem("kayitliIsim");
+            localStorage.removeItem("oyuncuID");
+            localStorage.removeItem("oyuncuIsim");
+            location.reload(); // Sayfayı yeniler
+        };
+
         async function canavarlariVeritabanindanCek() {
             try {
                 const querySnapshot = await getDocs(collection(db, "canavarlar"));
                 let veriSayisi = 0;
                 querySnapshot.forEach((doc) => {
                     const c = doc.data(); veriSayisi++;
-                    const nadirlikKucuk = c.nadirlik.toLowerCase();
+                    const nadirlikKucuk = c.nadirlik ? c.nadirlik.toLowerCase() : "yaygın";
                     if(canavarHavuzu[nadirlikKucuk]) { canavarHavuzu[nadirlikKucuk].push(c); } 
                     else { canavarHavuzu.yaygin.push(c); }
                 });
                 const btn = document.getElementById("baglan-btn");
-                if (veriSayisi > 0) { btn.innerText = "BAĞLAN"; btn.disabled = false; } 
-                else { btn.innerText = "VERİTABANI BOŞ!"; btn.style.background = "var(--kirmizi-alarm)"; }
+                
+                // DEĞİŞTİRİLDİ: Veritabanında hiç canavar olmasa bile test edebilmen için butonu açıyoruz
+                if (veriSayisi > 0) { 
+                    btn.innerText = "BAĞLAN"; 
+                    btn.disabled = false; 
+                } else { 
+                    btn.innerText = "BAĞLAN (VERİ YOK)"; 
+                    btn.style.background = "var(--altin)";
+                    btn.disabled = false; // Burası false yapıldı ki girebilesin
+                }
             } catch (error) {
-                console.error(error); document.getElementById("giris-durum").innerText = "Bağlantı Hatası! Kuralları kontrol et.";
+                console.error(error); 
+                document.getElementById("giris-durum").innerText = "Bağlantı Hatası! Kuralları kontrol et.";
             }
         }
 
@@ -270,7 +291,7 @@
             { id: "Ogle_Arasi", bas: "12:25", bit: "13:15" },
             { id: "Ogle_Teneffusu_1", bas: "13:55", bit: "14:10" },
             { id: "Ogle_Teneffusu_2", bas: "14:50", bit: "15:05" },
-            { id: "Okul_Cikisi", bas: "15:45", bit: "23:59" } // Çıkıştan geceye kadar açık
+            { id: "Okul_Cikisi", bas: "15:45", bit: "23:59" } 
         ];
 
         function saatiAl() { 
@@ -379,7 +400,7 @@
             const girilenKod = document.getElementById("hedef-kod").value.trim();
             const snap = await getDoc(tasiyiciRef);
             if (snap.exists() && snap.data().aktifKod === girilenKod && snap.data().durum === "aktif") {
-                if(canavarHavuzu.yaygin.length === 0 && canavarHavuzu.nadir.length === 0) { alert("Sistem Hatası!"); return; }
+                if(canavarHavuzu.yaygin.length === 0 && canavarHavuzu.nadir.length === 0) { alert("Henüz havuzda hiç canavar yok!"); return; }
                 document.getElementById("hedef-kod").value = "";
                 document.getElementById("gacha-ekrani").style.display = "flex";
                 document.getElementById("gacha-bekleme").style.display = "flex";
@@ -392,6 +413,8 @@
                 else if (sans <= 50 && canavarHavuzu.nadir.length > 0) havuzSecimi = canavarHavuzu.nadir;        
                 else havuzSecimi = canavarHavuzu.yaygin.length > 0 ? canavarHavuzu.yaygin : Object.values(canavarHavuzu).flat();                      
 
+                if(!havuzSecimi || havuzSecimi.length === 0) { alert("Havuz boş!"); document.getElementById("gacha-ekrani").style.display = "none"; return;}
+
                 const kazanilanCanavar = havuzSecimi[Math.floor(Math.random() * havuzSecimi.length)];
                 setTimeout(async () => {
                     const id = localStorage.getItem("oyuncuID");
@@ -399,17 +422,23 @@
                     oyuncuEnvanteri.push(kazanilanCanavar); arayuzuGuncelle();
                     document.getElementById("gacha-bekleme").style.display = "none";
                     document.getElementById("gacha-sonuc").style.display = "block";
-                    document.getElementById("yeni-canavar-img").src = kazanilanCanavar.resim;
+                    document.getElementById("yeni-canavar-img").src = kazanilanCanavar.resim || "";
                     document.getElementById("gacha-resim-cerceve").style.borderColor = kazanilanCanavar.renk || "#fff";
                     document.getElementById("gacha-baslik").style.color = kazanilanCanavar.renk || "#fff";
                     const isimMetni = document.getElementById("yeni-canavar-isim"); isimMetni.innerText = kazanilanCanavar.isim; isimMetni.style.color = kazanilanCanavar.renk || "#fff";
-                    const nadirlikMetni = document.getElementById("yeni-canavar-nadir"); nadirlikMetni.innerText = kazanilanCanavar.nadirlik.toUpperCase(); nadirlikMetni.style.color = kazanilanCanavar.renk || "#fff"; nadirlikMetni.style.borderColor = kazanilanCanavar.renk || "#fff";
+                    const nadirlikMetni = document.getElementById("yeni-canavar-nadir"); nadirlikMetni.innerText = kazanilanCanavar.nadirlik ? kazanilanCanavar.nadirlik.toUpperCase() : "YAYGIN"; nadirlikMetni.style.color = kazanilanCanavar.renk || "#fff"; nadirlikMetni.style.borderColor = kazanilanCanavar.renk || "#fff";
                 }, 2500); 
             } else { alert("GEÇERSİZ KOD!"); }
         };
 
         window.gachaKapat = () => document.getElementById("gacha-ekrani").style.display = "none";
-        window.cikisYap = () => { localStorage.removeItem("oyuncuID"); localStorage.removeItem("oyuncuIsim"); location.reload(); };
+        
+        // DEĞİŞTİRİLDİ: Çıkış yapınca mührü silmiyoruz ki güvenlik korunsun (Mührü kırmak için yukarıdaki buton kullanılacak)
+        window.cikisYap = () => { 
+            localStorage.removeItem("oyuncuID"); 
+            localStorage.removeItem("oyuncuIsim"); 
+            location.reload(); 
+        };
     </script>
 </body>
 </html>

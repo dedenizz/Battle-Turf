@@ -148,17 +148,10 @@
         </div>
     </div>
 
-    <div id="liderlik-ekrani" class="modal-overlay">
-        <div class="liderlik-kutu">
-            <h2 style="color: var(--altin); margin-top: 0;">🏆 EN GÜÇLÜ AVCILAR</h2>
-            <div id="liderlik-listesi"></div>
-            <button class="btn" style="margin-top: 20px; background: #333; color: #fff;" onclick="liderlikKapat()">KAPAT</button>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDoc, getDocs, query, where, doc, updateDoc, arrayUnion, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js"; // YENİ: Auth eklendi
 
         const firebaseConfig = {
           apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
@@ -171,6 +164,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); // YENİ: Auth başlatıldı
 
         let oyuncuEnvanteri = []; 
         let canavarHavuzu = { yaygin: [], nadir: [], destansi: [], efsanevi: [], mitik: [] };
@@ -202,7 +196,11 @@
                 let veriSayisi = 0;
                 querySnapshot.forEach((doc) => {
                     const c = doc.data(); 
-                    if (!c.isim || !c.resim) return; // Bozuk veri engeli
+                    // YENİ: resim veya resimURL var mı diye kontrol ediyoruz
+                    if (!c.isim || (!c.resim && !c.resimURL)) return; 
+                    
+                    c.resim = c.resimURL || c.resim; // Eskiyi bozmamak için URL'yi resim değişkenine eşitledik
+                    
                     veriSayisi++;
                     const nadirlikKucuk = c.nadirlik ? c.nadirlik.toLowerCase() : "yaygın";
                     if(canavarHavuzu[nadirlikKucuk]) { canavarHavuzu[nadirlikKucuk].push(c); } 
@@ -234,6 +232,10 @@
             const mühürlüIsim = localStorage.getItem("kayitliIsim");
 
             try {
+                // YENİ: Kullanıcıdan veri yazmadan ÖNCE kimlik onayı istiyoruz
+                durum.innerText = "Kimlik Doğrulanıyor...";
+                await signInAnonymously(auth);
+
                 durum.innerText = "Bağlanıyor...";
                 const playersRef = collection(db, "players");
                 const q = query(playersRef, where("isim", "==", kullaniciAdi));
@@ -294,9 +296,10 @@
             });
             oyuncuEnvanteri.forEach(canavar => {
                 const kart = document.createElement("div"); kart.className = "canavar-kart"; kart.style.borderColor = canavar.renk || "#fff";
+                // YENİ: İsimdeki alt tireler boşluğa dönüştürüldü replace(/_/g, " ")
                 kart.innerHTML = `<div class="canavar-resim"><img src="${canavar.resim}" alt="${canavar.isim}"></div>
-                                  <div class="canavar-isim" style="color: ${canavar.renk || '#fff'};">${canavar.isim}</div>
-                                  <div class="nadir-etiket" style="color: ${canavar.renk || '#fff'}; border: 1px solid ${canavar.renk || '#fff'}">${canavar.nadirlik.toUpperCase()}</div>`;
+                                  <div class="canavar-isim" style="color: ${canavar.renk || '#fff'};">${canavar.isim.replace(/_/g, " ")}</div>
+                                  <div class="nadir-etiket" style="color: ${canavar.renk || '#fff'}; border: 1px solid ${canavar.renk || '#fff'}">${(canavar.nadirlik || "Yaygın").toUpperCase()}</div>`;
                 grid.appendChild(kart);
             });
         }
@@ -335,7 +338,6 @@
                     const data = doc.data();
                     const envanter = data.envanter || [];
                     
-                    // YENİ: Sadece canavar sayısı değil, nadirliğe göre PUAN hesaplama
                     let p = 0;
                     envanter.forEach(canavar => {
                         const nk = (canavar.nadirlik || "yaygın").toLowerCase();
@@ -368,7 +370,7 @@
         window.liderlikKapat = () => document.getElementById("liderlik-ekrani").style.display = "none";
 
         window.koduCozVeCevir = async function() {
-            const girilenKod = document.getElementById("hedef-kod").value.trim().toUpperCase(); // BÜYÜK/KÜÇÜK HARF DUYARLILIĞI EKLENDİ
+            const girilenKod = document.getElementById("hedef-kod").value.trim().toUpperCase(); 
             const snap = await getDoc(tasiyiciRef);
             
             if (snap.exists() && snap.data().aktifKod === girilenKod && snap.data().durum === "aktif") {
@@ -376,7 +378,6 @@
                 const aktifZamanDamgasi = snap.data().zamanDamgasi;
                 const tasiyiciID = snap.data().hedefOyuncuID;
                 
-                // YENİ: Oyuncu bu döngüde daha önce kod girdi mi?
                 const oyuncuSnap = await getDoc(doc(db, "players", id));
                 const oyuncuVeri = oyuncuSnap.data();
                 
@@ -403,13 +404,11 @@
                 const kazanilanCanavar = havuzSecimi[Math.floor(Math.random() * havuzSecimi.length)];
                 
                 setTimeout(async () => {
-                    // YENİ: Kendi envanterine ekle ve Döngüyü mühürle
                     await updateDoc(doc(db, "players", id), { 
                         envanter: arrayUnion(kazanilanCanavar),
                         sonKullanilanDongu: aktifZamanDamgasi
                     });
 
-                    // YENİ: Taşıyıcıyı Ödüllendirme (Kodu yayılan kişi ödül kazanır)
                     if(tasiyiciID && tasiyiciID !== id) {
                         const rastgeleYaygin = canavarHavuzu.yaygin[Math.floor(Math.random() * canavarHavuzu.yaygin.length)];
                         if(rastgeleYaygin) {
@@ -424,11 +423,12 @@
                     
                     document.getElementById("gacha-bekleme").style.display = "none";
                     document.getElementById("gacha-sonuc").style.display = "block";
-                    document.getElementById("yeni-canavar-img").src = kazanilanCanavar.resim;
+                    document.getElementById("yeni-canavar-img").src = kazanilanCanavar.resim; // YENİ: Görsel çekiliyor
                     document.getElementById("gacha-resim-cerceve").style.borderColor = kazanilanCanavar.renk || "#fff";
                     document.getElementById("gacha-baslik").style.color = kazanilanCanavar.renk || "#fff";
-                    const isimMetni = document.getElementById("yeni-canavar-isim"); isimMetni.innerText = kazanilanCanavar.isim; isimMetni.style.color = kazanilanCanavar.renk || "#fff";
-                    const nadirlikMetni = document.getElementById("yeni-canavar-nadir"); nadirlikMetni.innerText = kazanilanCanavar.nadirlik.toUpperCase(); nadirlikMetni.style.color = kazanilanCanavar.renk || "#fff"; nadirlikMetni.style.borderColor = kazanilanCanavar.renk || "#fff";
+                    // YENİ: İsimdeki alt tireler boşluğa dönüştürüldü replace(/_/g, " ")
+                    const isimMetni = document.getElementById("yeni-canavar-isim"); isimMetni.innerText = kazanilanCanavar.isim.replace(/_/g, " "); isimMetni.style.color = kazanilanCanavar.renk || "#fff";
+                    const nadirlikMetni = document.getElementById("yeni-canavar-nadir"); nadirlikMetni.innerText = (kazanilanCanavar.nadirlik || "YAYGIN").toUpperCase(); nadirlikMetni.style.color = kazanilanCanavar.renk || "#fff"; nadirlikMetni.style.borderColor = kazanilanCanavar.renk || "#fff";
                 }, 2500); 
             } else { alert("GEÇERSİZ KOD!"); }
         };

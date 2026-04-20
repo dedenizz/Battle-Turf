@@ -255,13 +255,20 @@
             });
         }
 
-        // --- ⏰ TENEFFÜS SİSTEMİ (TAM VERSİYON) ---
+                // --- ⏰ TENEFFÜS SİSTEMİ (OKUL SAATLERİ) ---
         const teneffusler = [
-            { id: "TEST_MODU", bas: "00:00", bit: "23:59" }, // TEST BİTİNCE BU SATIRI SİLEBİLİRSİN
-            { id: "Sabah_Teneffusu", bas: "09:30", bit: "09:45" },
-            { id: "Ikinci_Teneffus", bas: "10:25", bit: "10:35" },
-            { id: "Ogle_Arasi", bas: "12:00", bit: "12:40" }
+            { id: "1_Teneffus", bas: "09:10", bit: "09:25" },
+            { id: "2_Teneffus", bas: "10:05", bit: "10:15" },
+            { id: "3_Teneffus", bas: "10:55", bit: "11:05" },
+            { id: "4_Teneffus", bas: "11:45", bit: "11:55" },
+            { id: "Ogle_Arasi", bas: "12:35", bit: "13:20" },
+            { id: "5_Teneffus", bas: "14:00", bit: "14:10" },
+            { id: "6_Teneffus", bas: "14:50", bit: "15:00" },
+            
+            // Okul çıkışından gece yarısına kadar oyun açık kalır:
+            { id: "Okul_Cikisi", bas: "15:40", bit: "23:59" } 
         ];
+
 
         function saatiAl() { 
             const d = new Date(); 

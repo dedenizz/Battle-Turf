@@ -186,18 +186,31 @@
         document.getElementById("baglan-btn").disabled = true; // Yüklenene kadar butonu kapat
         canavarlariVeritabanindanCek();
 
-                window.hesapOlustur = async function() {
+                        // --- 🛡️ 1. SAYFA YÜKLENDİĞİNDE CİHAZ MÜHRÜNÜ KONTROL ET ---
+        window.onload = function() {
+            const mühürlüIsim = localStorage.getItem("kayitliIsim");
+            if (mühürlüIsim) {
+                const isimKutusu = document.getElementById("kullanici-adi");
+                isimKutusu.value = mühürlüIsim.toUpperCase();
+                isimKutusu.disabled = true; // İsmi değiştirmesini yasakla!
+                isimKutusu.style.color = "var(--vurgu-renk)";
+                document.getElementById("giris-durum").innerText = "Cihaz Mührü Aktif. Kendi PIN'ini gir.";
+            }
+        };
+
+        // --- 🛡️ 2. HESAP OLUŞTURMA VE GİRİŞ (YENİLENMİŞ) ---
+        window.hesapOlustur = async function() {
+            // Eğer input disabled ise value'yu alırken hata çıkmaması için küçük harfe çeviriyoruz
             const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();
             const pin = document.getElementById("kullanici-pin").value.trim();
             const durum = document.getElementById("giris-durum");
             
             if (kullaniciAdi.length < 3 || pin.length !== 4) { 
-                durum.innerText = "Hatalı İsim veya PIN."; 
+                durum.innerText = "Hatalı İsim veya 4 Haneli PIN."; 
                 return; 
             }
 
-            // 🛡️ CİHAZ MÜHRÜ KONTROLÜ
-            const cihazMuhru = localStorage.getItem("cihazMuhru");
+            const mühürlüIsim = localStorage.getItem("kayitliIsim");
 
             try {
                 const playersRef = collection(db, "players");
@@ -210,25 +223,25 @@
                     if (playerData.data().pin === pin) {
                         localStorage.setItem("oyuncuID", playerData.id);
                         localStorage.setItem("oyuncuIsim", playerData.data().isim);
-                        localStorage.setItem("cihazMuhru", "AKTIF"); // Giriş yapınca da mühürle
+                        localStorage.setItem("kayitliIsim", playerData.data().isim); // 🛡️ Cihazı bu isme mühürle
                         sistemiBaslat();
                     } else { 
-                        durum.innerText = "Hatalı PIN!"; 
+                        durum.innerText = "⚠ Hatalı PIN! Unuttuysan Kurucuya (Admin) başvur."; 
                     }
                 } else {
-                    // 🛡️ YENİ HESAP AÇMAYA ÇALIŞIYOR - MÜHÜR KONTROLÜ YAP
-                    if (cihazMuhru === "AKTIF") {
-                        durum.innerText = "⚠ İHLAL: Bu cihazda zaten bir taşıyıcı kaydı var!";
+                    // YENİ HESAP AÇMAYA ÇALIŞIYOR
+                    if (mühürlüIsim && mühürlüIsim !== kullaniciAdi) {
+                        durum.innerText = `⚠ İHLAL: Bu cihaz ${mühürlüIsim.toUpperCase()} adına mühürlü!`;
                         return; // Yeni hesap açmasını durdur!
                     }
 
-                    // MÜHÜR YOKSA YENİ HESAP OLUŞTUR
+                    // MÜHÜR YOKSA VE İSİM BOŞTAYSA YENİ HESAP OLUŞTUR
                     const docRef = await addDoc(collection(db, "players"), {
                         isim: kullaniciAdi, pin: pin, seviye: 1, kapasite: 50, envanter: []
                     });
                     localStorage.setItem("oyuncuID", docRef.id);
                     localStorage.setItem("oyuncuIsim", kullaniciAdi);
-                    localStorage.setItem("cihazMuhru", "AKTIF"); // 🛡️ CİHAZI MÜHÜRLE
+                    localStorage.setItem("kayitliIsim", kullaniciAdi); // 🛡️ Cihazı bu isme mühürle
                     sistemiBaslat();
                 }
             } catch (e) { 
@@ -236,6 +249,15 @@
                 durum.innerText = "Sunucu bağlantı hatası!";
             }
         };
+
+        // --- 🛡️ 3. ÇIKIŞ YAP (AÇIĞI KAPATTIK) ---
+        window.cikisYap = () => { 
+            // Sadece aktif oturumu kapat, CİHAZ MÜHRÜNÜ SİLME!
+            localStorage.removeItem("oyuncuID"); 
+            localStorage.removeItem("oyuncuIsim");
+            location.reload(); 
+        };
+
 
 
         window.sistemiBaslat = async function() {

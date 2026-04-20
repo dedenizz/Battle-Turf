@@ -186,11 +186,18 @@
         document.getElementById("baglan-btn").disabled = true; // Yüklenene kadar butonu kapat
         canavarlariVeritabanindanCek();
 
-        window.hesapOlustur = async function() {
+                window.hesapOlustur = async function() {
             const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();
             const pin = document.getElementById("kullanici-pin").value.trim();
             const durum = document.getElementById("giris-durum");
-            if (kullaniciAdi.length < 3 || pin.length !== 4) { durum.innerText = "Hatalı İsim veya PIN."; return; }
+            
+            if (kullaniciAdi.length < 3 || pin.length !== 4) { 
+                durum.innerText = "Hatalı İsim veya PIN."; 
+                return; 
+            }
+
+            // 🛡️ CİHAZ MÜHRÜ KONTROLÜ
+            const cihazMuhru = localStorage.getItem("cihazMuhru");
 
             try {
                 const playersRef = collection(db, "players");
@@ -198,22 +205,38 @@
                 const snap = await getDocs(q);
 
                 if (!snap.empty) {
+                    // HESAP ZATEN VAR - GİRİŞ YAPMAYI DENE
                     const playerData = snap.docs[0];
                     if (playerData.data().pin === pin) {
                         localStorage.setItem("oyuncuID", playerData.id);
                         localStorage.setItem("oyuncuIsim", playerData.data().isim);
+                        localStorage.setItem("cihazMuhru", "AKTIF"); // Giriş yapınca da mühürle
                         sistemiBaslat();
-                    } else { durum.innerText = "Hatalı PIN!"; }
+                    } else { 
+                        durum.innerText = "Hatalı PIN!"; 
+                    }
                 } else {
+                    // 🛡️ YENİ HESAP AÇMAYA ÇALIŞIYOR - MÜHÜR KONTROLÜ YAP
+                    if (cihazMuhru === "AKTIF") {
+                        durum.innerText = "⚠ İHLAL: Bu cihazda zaten bir taşıyıcı kaydı var!";
+                        return; // Yeni hesap açmasını durdur!
+                    }
+
+                    // MÜHÜR YOKSA YENİ HESAP OLUŞTUR
                     const docRef = await addDoc(collection(db, "players"), {
                         isim: kullaniciAdi, pin: pin, seviye: 1, kapasite: 50, envanter: []
                     });
                     localStorage.setItem("oyuncuID", docRef.id);
                     localStorage.setItem("oyuncuIsim", kullaniciAdi);
+                    localStorage.setItem("cihazMuhru", "AKTIF"); // 🛡️ CİHAZI MÜHÜRLE
                     sistemiBaslat();
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error(e); 
+                durum.innerText = "Sunucu bağlantı hatası!";
+            }
         };
+
 
         window.sistemiBaslat = async function() {
             const id = localStorage.getItem("oyuncuID");

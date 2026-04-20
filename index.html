@@ -54,10 +54,8 @@
         .btn-cevir:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 51, 102, 0.4); }
         .btn-cevir:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
 
-        /* MODAL EKRANLARI (Gacha ve Liderlik için ortak arkaplan) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; }
         
-        /* GACHA */
         .gacha-kapsul { width: 200px; height: 200px; background: #111; border-radius: 50%; border: 5px solid #555; display: flex; justify-content: center; align-items: center; font-size: 5rem; animation: hizliTitre 0.1s infinite; }
         @keyframes hizliTitre { 0% { transform: translate(2px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(0px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(2px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(2px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
         .gacha-sonuc { display: none; text-align: center; animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -65,7 +63,6 @@
         .yeni-resim { width: 250px; height: 250px; background: #000; border-radius: 20px; margin-bottom: 20px; border: 4px solid #fff; box-shadow: 0 0 50px rgba(255,255,255,0.2); overflow: hidden; }
         .yeni-resim img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* LİDERLİK TABLOSU */
         .liderlik-kutu { background: var(--panel); border: 2px solid var(--altin); border-radius: 15px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; padding: 20px; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.2); }
         .sira-satir { display: flex; justify-content: space-between; align-items: center; background: #111; padding: 15px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #333; }
         .sira-1 { border-color: var(--altin); background: rgba(255, 215, 0, 0.1); }
@@ -144,8 +141,7 @@
         <div class="liderlik-kutu">
             <h2 style="color: var(--altin); margin-top: 0;">🏆 EN GÜÇLÜ AVCILAR</h2>
             <p style="color: var(--metin-soluk); font-size: 0.8rem; margin-bottom: 20px;">Sahip Olunan Canavar Sayısına Göre</p>
-            <div id="liderlik-listesi">
-                </div>
+            <div id="liderlik-listesi"></div>
             <button class="btn" style="margin-top: 20px; background: #333; color: #fff;" onclick="liderlikKapat()">KAPAT</button>
         </div>
     </div>
@@ -259,11 +255,64 @@
             });
         }
 
-        // TENEFFÜS SİSTEMİ (Özetlenmiş)
-        const teneffusler = [ { id: "TEST", bas: "00:00", bit: "23:59" } ];
-        function saatiAl() { const d = new Date(); return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0'); }
-        async function zamanlayiciKontrol() { /* ... Mevcut taşıyıcı kodu aynen korundu ... */ }
+        // --- ⏰ TENEFFÜS SİSTEMİ (TAM VERSİYON) ---
+        const teneffusler = [
+            { id: "TEST_MODU", bas: "00:00", bit: "23:59" }, // TEST BİTİNCE BU SATIRI SİLEBİLİRSİN
+            { id: "Sabah_Teneffusu", bas: "09:30", bit: "09:45" },
+            { id: "Ikinci_Teneffus", bas: "10:25", bit: "10:35" },
+            { id: "Ogle_Arasi", bas: "12:00", bit: "12:40" }
+        ];
 
+        function saatiAl() { 
+            const d = new Date(); 
+            return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0'); 
+        }
+
+        async function zamanlayiciKontrol() {
+            const anlikSaat = saatiAl();
+            let aktifTeneffus = null;
+            
+            for (let t of teneffusler) { 
+                if (anlikSaat >= t.bas && anlikSaat < t.bit) { 
+                    aktifTeneffus = t; 
+                    break; 
+                } 
+            }
+            
+            const tRef = doc(db, "gameState", "carrier");
+            const snap = await getDoc(tRef);
+
+            if (aktifTeneffus) {
+                if (!snap.exists() || snap.data().sonTeneffusID !== aktifTeneffus.id || snap.data().durum !== "aktif") {
+                    await setDoc(tRef, { sonTeneffusID: aktifTeneffus.id, durum: "seciliyor" }, { merge: true });
+                    
+                    const oyuncularSnap = await getDocs(collection(db, "players"));
+                    const oyuncular = [];
+                    oyuncularSnap.forEach(d => oyuncular.push({ id: d.id, isim: d.data().isim }));
+                    
+                    if (oyuncular.length > 0) {
+                        const secilen = oyuncular[Math.floor(Math.random() * oyuncular.length)];
+                        const kod = Math.floor(1000 + Math.random() * 9000).toString();
+                        await setDoc(tRef, { 
+                            hedefOyuncuID: secilen.id, 
+                            hedefIsim: secilen.isim, 
+                            aktifKod: kod, 
+                            durum: "aktif", 
+                            sonTeneffusID: aktifTeneffus.id 
+                        });
+                    }
+                }
+            } else {
+                if (snap.exists() && snap.data().durum === "aktif") { 
+                    await updateDoc(tRef, { durum: "pasif" }); 
+                }
+            }
+        }
+        
+        zamanlayiciKontrol();
+        setInterval(zamanlayiciKontrol, 10000); // 10 Saniyede bir kontrol et
+
+        // --- EKRAN GÜNCELLEMELERİ ---
         const tasiyiciRef = doc(db, "gameState", "carrier");
         onSnapshot(tasiyiciRef, (docSnap) => {
             const radar = document.getElementById("radar-durum"); const avciModu = document.getElementById("avci-modu");
@@ -287,7 +336,7 @@
             }
         });
 
-        // 🏆 LİDERLİK TABLOSU FONKSİYONLARI
+        // 🏆 LİDERLİK TABLOSU
         window.liderlikAc = async function() {
             document.getElementById("liderlik-ekrani").style.display = "flex";
             const liste = document.getElementById("liderlik-listesi");
@@ -300,12 +349,8 @@
                     const data = doc.data();
                     oyuncular.push({ isim: data.isim, canavarSayisi: (data.envanter ? data.envanter.length : 0) });
                 });
-
-                // Canavar sayısına göre çoktan aza sırala
                 oyuncular.sort((a, b) => b.canavarSayisi - a.canavarSayisi);
-
                 liste.innerHTML = "";
-                // Sadece ilk 10 kişiyi göster
                 oyuncular.slice(0, 10).forEach((oyuncu, index) => {
                     let siraSinifi = "";
                     if(index === 0) siraSinifi = "sira-1";
@@ -323,12 +368,12 @@
                     `;
                 });
             } catch (e) {
-                console.error(e);
-                liste.innerHTML = "<p style='color: red;'>Bağlantı Hatası!</p>";
+                console.error(e); liste.innerHTML = "<p style='color: red;'>Bağlantı Hatası!</p>";
             }
         }
         window.liderlikKapat = () => document.getElementById("liderlik-ekrani").style.display = "none";
 
+        // --- GACHA SİSTEMİ ---
         window.koduCozVeCevir = async function() {
             const girilenKod = document.getElementById("hedef-kod").value.trim();
             const snap = await getDoc(tasiyiciRef);

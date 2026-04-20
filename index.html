@@ -148,45 +148,7 @@
         let oyuncuEnvanteri = []; 
         let canavarHavuzu = { yaygin: [], nadir: [], destansi: [], efsanevi: [], mitik: [] };
 
-        // 🚀 VERİTABANINDAN CANAVARLARI YÜKLE
-        async function canavarlariVeritabanindanCek() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "canavarlar"));
-                let veriSayisi = 0;
-                
-                querySnapshot.forEach((doc) => {
-                    const c = doc.data();
-                    veriSayisi++;
-                    // Gelen canavarın nadirliğine göre havuza at
-                    const nadirlikKucuk = c.nadirlik.toLowerCase();
-                    if(canavarHavuzu[nadirlikKucuk]) {
-                        canavarHavuzu[nadirlikKucuk].push(c);
-                    } else {
-                        canavarHavuzu.yaygin.push(c); // Bulamazsa yaygına at
-                    }
-                });
-
-                const btn = document.getElementById("baglan-btn");
-                if (veriSayisi > 0) {
-                    btn.innerText = "BAĞLAN";
-                    btn.disabled = false;
-                } else {
-                    btn.innerText = "VERİTABANI BOŞ!";
-                    btn.style.background = "var(--kirmizi-alarm)";
-                }
-                
-                console.log(`Veritabanından ${veriSayisi} canavar çekildi.`);
-            } catch (error) {
-                console.error("Canavarlar çekilirken hata:", error);
-                document.getElementById("giris-durum").innerText = "Sistem Hatası: Veritabanına ulaşılamıyor.";
-            }
-        }
-
-        // Sayfa açılır açılmaz canavarları çekmeye başla
-        document.getElementById("baglan-btn").disabled = true; // Yüklenene kadar butonu kapat
-        canavarlariVeritabanindanCek();
-
-                        // --- 🛡️ 1. SAYFA YÜKLENDİĞİNDE CİHAZ MÜHRÜNÜ KONTROL ET ---
+        // --- 🛡️ 1. SAYFA YÜKLENDİĞİNDE CİHAZ MÜHRÜNÜ KONTROL ET ---
         window.onload = function() {
             const mühürlüIsim = localStorage.getItem("kayitliIsim");
             if (mühürlüIsim) {
@@ -198,9 +160,42 @@
             }
         };
 
-        // --- 🛡️ 2. HESAP OLUŞTURMA VE GİRİŞ (YENİLENMİŞ) ---
+        // 🚀 VERİTABANINDAN CANAVARLARI YÜKLE
+        async function canavarlariVeritabanindanCek() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "canavarlar"));
+                let veriSayisi = 0;
+                
+                querySnapshot.forEach((doc) => {
+                    const c = doc.data();
+                    veriSayisi++;
+                    const nadirlikKucuk = c.nadirlik.toLowerCase();
+                    if(canavarHavuzu[nadirlikKucuk]) {
+                        canavarHavuzu[nadirlikKucuk].push(c);
+                    } else {
+                        canavarHavuzu.yaygin.push(c); 
+                    }
+                });
+
+                const btn = document.getElementById("baglan-btn");
+                if (veriSayisi > 0) {
+                    btn.innerText = "BAĞLAN";
+                    btn.disabled = false;
+                } else {
+                    btn.innerText = "VERİTABANI BOŞ!";
+                    btn.style.background = "var(--kirmizi-alarm)";
+                }
+            } catch (error) {
+                console.error("Canavarlar çekilirken hata:", error);
+                document.getElementById("giris-durum").innerText = "Sistem Hatası: Veritabanına ulaşılamıyor.";
+            }
+        }
+
+        document.getElementById("baglan-btn").disabled = true; 
+        canavarlariVeritabanindanCek();
+
+        // --- 🛡️ 2. HESAP OLUŞTURMA VE GİRİŞ ---
         window.hesapOlustur = async function() {
-            // Eğer input disabled ise value'yu alırken hata çıkmaması için küçük harfe çeviriyoruz
             const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();
             const pin = document.getElementById("kullanici-pin").value.trim();
             const durum = document.getElementById("giris-durum");
@@ -218,30 +213,27 @@
                 const snap = await getDocs(q);
 
                 if (!snap.empty) {
-                    // HESAP ZATEN VAR - GİRİŞ YAPMAYI DENE
                     const playerData = snap.docs[0];
                     if (playerData.data().pin === pin) {
                         localStorage.setItem("oyuncuID", playerData.id);
                         localStorage.setItem("oyuncuIsim", playerData.data().isim);
-                        localStorage.setItem("kayitliIsim", playerData.data().isim); // 🛡️ Cihazı bu isme mühürle
+                        localStorage.setItem("kayitliIsim", playerData.data().isim); 
                         sistemiBaslat();
                     } else { 
-                        durum.innerText = "⚠ Hatalı PIN! Unuttuysan Kurucuya (Admin) başvur."; 
+                        durum.innerText = "⚠ Hatalı PIN! Unuttuysan Kurucuya başvur."; 
                     }
                 } else {
-                    // YENİ HESAP AÇMAYA ÇALIŞIYOR
                     if (mühürlüIsim && mühürlüIsim !== kullaniciAdi) {
                         durum.innerText = `⚠ İHLAL: Bu cihaz ${mühürlüIsim.toUpperCase()} adına mühürlü!`;
-                        return; // Yeni hesap açmasını durdur!
+                        return; 
                     }
 
-                    // MÜHÜR YOKSA VE İSİM BOŞTAYSA YENİ HESAP OLUŞTUR
                     const docRef = await addDoc(collection(db, "players"), {
                         isim: kullaniciAdi, pin: pin, seviye: 1, kapasite: 50, envanter: []
                     });
                     localStorage.setItem("oyuncuID", docRef.id);
                     localStorage.setItem("oyuncuIsim", kullaniciAdi);
-                    localStorage.setItem("kayitliIsim", kullaniciAdi); // 🛡️ Cihazı bu isme mühürle
+                    localStorage.setItem("kayitliIsim", kullaniciAdi); 
                     sistemiBaslat();
                 }
             } catch (e) { 
@@ -249,16 +241,6 @@
                 durum.innerText = "Sunucu bağlantı hatası!";
             }
         };
-
-        // --- 🛡️ 3. ÇIKIŞ YAP (AÇIĞI KAPATTIK) ---
-        window.cikisYap = () => { 
-            // Sadece aktif oturumu kapat, CİHAZ MÜHRÜNÜ SİLME!
-            localStorage.removeItem("oyuncuID"); 
-            localStorage.removeItem("oyuncuIsim");
-            location.reload(); 
-        };
-
-
 
         window.sistemiBaslat = async function() {
             const id = localStorage.getItem("oyuncuID");
@@ -280,10 +262,8 @@
             document.getElementById("koleksiyon-sayisi").innerText = oyuncuEnvanteri.length;
             grid.innerHTML = ""; 
 
-            // Canavarları nadirliğe göre sırala (Mitik en üstte)
             const nadirlikSirasi = { "mitik": 5, "efsanevi": 4, "destansi": 3, "nadir": 2, "yaygın": 1 };
             
-            // Eğer Firebase'den gelen nadirlik büyük harfleyse düzelt
             oyuncuEnvanteri.sort((a, b) => {
                 const nadirA = (a.nadirlik || "yaygın").toLowerCase();
                 const nadirB = (b.nadirlik || "yaygın").toLowerCase();
@@ -305,9 +285,9 @@
             });
         }
 
-        // TENEFFÜS SİSTEMİ (Orijinal)
+        // TENEFFÜS SİSTEMİ
         const teneffusler = [
-            { id: "TEST_MODU", bas: "00:00", bit: "23:59" }, // TENEFFÜS KİLİDİ AÇIK
+            { id: "TEST_MODU", bas: "00:00", bit: "23:59" }, 
             { id: "Sabah_Teneffusu", bas: "09:30", bit: "09:50" },
             { id: "Ikinci_Teneffus", bas: "11:05", bit: "11:15" },
             { id: "Ucuncu_Teneffus", bas: "11:55", bit: "12:05" },
@@ -373,14 +353,13 @@
             }
         });
 
-        // 🚀 VERİTABANINDAN ÇEKİLEN CANAVARLARLA GACHA ALGORİTMASI
+        // GACHA ALGORİTMASI
         window.koduCozVeCevir = async function() {
             const girilenKod = document.getElementById("hedef-kod").value.trim();
             const snap = await getDoc(tasiyiciRef);
             
             if (snap.exists() && snap.data().aktifKod === girilenKod && snap.data().durum === "aktif") {
                 
-                // GÜVENLİK: Havuzlar boşsa hata ver
                 if(canavarHavuzu.yaygin.length === 0 && canavarHavuzu.nadir.length === 0) {
                     alert("Sistem Hatası: Canavar havuzu boş! Python botuyla canavar eklemelisin.");
                     return;
@@ -394,7 +373,6 @@
                 const sans = Math.random() * 100;
                 let havuzSecimi;
 
-                // Havuzlarda canavar var mı diye kontrol ederek seçim yap
                 if (sans <= 0.1 && canavarHavuzu.mitik.length > 0) havuzSecimi = canavarHavuzu.mitik;           
                 else if (sans <= 5 && canavarHavuzu.efsanevi.length > 0) havuzSecimi = canavarHavuzu.efsanevi;     
                 else if (sans <= 20 && canavarHavuzu.destansi.length > 0) havuzSecimi = canavarHavuzu.destansi;    
@@ -435,7 +413,13 @@
         };
 
         window.gachaKapat = () => document.getElementById("gacha-ekrani").style.display = "none";
-        window.cikisYap = () => { localStorage.clear(); location.reload(); };
+        
+        // --- 🛡️ 3. ÇIKIŞ YAP (GÜVENLİ) ---
+        window.cikisYap = () => { 
+            localStorage.removeItem("oyuncuID"); 
+            localStorage.removeItem("oyuncuIsim");
+            location.reload(); 
+        };
 
     </script>
 </body>

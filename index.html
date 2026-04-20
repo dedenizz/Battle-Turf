@@ -3,79 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SÜRÜ: Taşıyıcı Uyanışı</title>
+    <title>SÜRÜ - Admin Paneli</title>
     <style>
-        :root { --neon-cyan: #00ffcc; --rarity-common: #a0a0a0; --rarity-rare: #0088ff; --rarity-epic: #aa00ff; --rarity-legendary: #ffaa00; --rarity-mythic: #ff3366; }
-        body { background: #0a0a0a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; overflow-x: hidden; }
+        :root {
+            --neon-green: #00ff00;
+            --dark-bg: #0a0a0a;
+            --panel-bg: #111;
+        }
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #login-screen, #admin-panel {
+            background: var(--panel-bg);
+            padding: 40px;
+            border: 2px solid var(--neon-green);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--neon-green);
+            text-align: center;
+        }
+        #admin-panel {
+            display: none;
+            width: 80%;
+            height: 80%;
+            overflow-y: auto;
+        }
+        h1 { color: var(--neon-green); text-transform: uppercase; letter-spacing: 2px; }
+        input {
+            background: black; border: 1px solid var(--neon-green); color: var(--neon-green);
+            padding: 10px; margin: 10px 0; width: 80%; text-align: center; font-family: inherit;
+        }
+        button {
+            background: var(--neon-green); color: black; border: none; padding: 10px 20px;
+            cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s;
+        }
+        button:hover { background: white; box-shadow: 0 0 10px white; }
         
-        /* GİRİŞ EKRANI */
-        #giris-ekrani { position: fixed; inset: 0; background: radial-gradient(circle, #111, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        .input-box { background: #1a1a1a; border: 2px solid var(--neon-cyan); padding: 20px; border-radius: 15px; text-align: center; }
-        input { background: #000; border: 1px solid #444; color: white; padding: 10px; margin: 10px; border-radius: 5px; width: 200px; text-align: center; }
-        button { background: var(--neon-cyan); color: black; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--neon-cyan); }
-
-        /* ANA OYUN ALANI */
-        #oyun-ekrani { display: none; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-        
-        /* GACHA BÖLÜMÜ */
-        .gacha-area { background: #111; border: 2px dashed #333; padding: 40px; border-radius: 20px; text-align: center; margin-bottom: 30px; }
-        #gacha-bekleme { display: none; font-size: 2rem; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-        
-        #gacha-sonuc { display: none; }
-        .sonuc-kart { display: inline-block; padding: 20px; border: 4px solid white; border-radius: 15px; background: #000; }
-        
-        /* ENVANTER */
-        .envanter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
-        .canavar-kart { background: #1a1a1a; border: 2px solid #333; border-radius: 10px; padding: 10px; text-align: center; font-size: 0.8rem; transition: 0.3s; }
-        .canavar-kart img { width: 100%; height: 100px; object-fit: cover; border-radius: 5px; margin-bottom: 5px; }
+        .monster-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;
+        }
+        .monster-card {
+            background: #222; border: 1px solid #444; padding: 10px; border-radius: 5px; text-align: center;
+        }
+        .monster-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-    <div id="giris-ekrani">
-        <div class="input-box">
-            <h1 style="color: var(--neon-cyan)">SÜRÜ</h1>
-            <p>Taşıyıcı Adınızı Girin</p>
-            <input type="text" id="oyuncu-adi" placeholder="Örn: SoloLeveler">
-            <br>
-            <button onclick="sistemeGiris()">SİSTEMİ UYANDIR</button>
-        </div>
+    <div id="login-screen">
+        <h1>Sistem Girişi</h1>
+        <p>Yönetici Şifresi Gerekiyor</p>
+        <input type="password" id="admin-pass" placeholder="Şifreyi Girin">
+        <br>
+        <button onclick="checkPassword()">SİSTEME ERİŞ</button>
     </div>
 
-    <div id="oyun-ekrani">
-        <div class="header">
-            <div>Taşıyıcı: <span id="oyuncu-adi-display" style="color: var(--neon-cyan)">...</span></div>
-            <div id="coin-display">💰 100</div>
-        </div>
-
-        <div class="gacha-area">
-            <div id="gacha-normal">
-                <h2>Gizemli Kutuyu Aç</h2>
-                <button onclick="kutuAc()" style="padding: 20px 50px; font-size: 1.5rem;">AÇ (10 💰)</button>
-            </div>
-
-            <div id="gacha-bekleme">🌀 KUTU AÇILIYOR...</div>
-
-            <div id="gacha-sonuc">
-                <div class="sonuc-kart" id="sonuc-cerceve">
-                    <h2 id="yeni-canavar-isim">...</h2>
-                    <p id="yeni-canavar-nadir">...</p>
-                    <button onclick="kapatSonuc()">TAMAM</button>
-                </div>
-            </div>
-        </div>
-
-        <h3>Envanterin</h3>
-        <div class="envanter-grid" id="envanter-listesi">
+    <div id="admin-panel">
+        <h1>SÜRÜ Yönetim Paneli</h1>
+        <p>Veritabanı Durumu: <span style="color: var(--neon-green)">ÇEVRİMİÇİ</span></p>
+        
+        <h3>Kayıtlı Canavarlar</h3>
+        <div class="monster-grid" id="monster-list">
             </div>
     </div>
 
     <script type="module">
+        // FİREBASE BAĞLANTISI
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, arrayUnion, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
@@ -89,122 +91,55 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let oyuncuEnvanteri = [];
-        let canavarHavuzu = { yaygin: [], nadir: [], destansi: [], efsanevi: [], mitik: [] };
+        // ŞİFRE KONTROLÜ
+        window.checkPassword = function() {
+            const pass = document.getElementById("admin-pass").value;
+            // ŞİFRE BURADA! "suru2024" veya kendi istediğin şifreyi yap.
+            if(pass === "suru2024") { 
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("admin-panel").style.display = "block";
+                loadMonsters();
+            } else {
+                alert("ERİŞİM REDDEDİLDİ!");
+            }
+        };
 
-        // 1. CANAVARLARI YÜKLE
-        async function canavarlariYukle() {
-            const querySnapshot = await getDocs(collection(db, "canavarlar"));
-            canavarHavuzu = { yaygin: [], nadir: [], destansi: [], efsanevi: [], mitik: [] };
-            querySnapshot.forEach((doc) => {
-                const c = doc.data();
-                if(canavarHavuzu[c.nadirlik.toLowerCase()]) {
-                    canavarHavuzu[c.nadirlik.toLowerCase()].push(c);
-                } else {
-                    canavarHavuzu.yaygin.push(c);
+        // CANAVARLARI FİREBASE'DEN ÇEK VE EKRANA YAZDIR
+        async function loadMonsters() {
+            const listDiv = document.getElementById("monster-list");
+            listDiv.innerHTML = "<p>Veriler Yükleniyor...</p>";
+
+            try {
+                // Burada "canavarlar" koleksiyonunu çekiyoruz
+                const querySnapshot = await getDocs(collection(db, "canavarlar"));
+                listDiv.innerHTML = ""; // Yükleniyor yazısını sil
+                
+                let count = 0;
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    count++;
+                    
+                    const card = document.createElement("div");
+                    card.className = "monster-card";
+                    // Eğer veritabanında renk yoksa varsayılan beyaz yap
+                    const renk = data.renk || "#ffffff"; 
+                    
+                    card.innerHTML = `
+                        <img src="${data.resim}" alt="${data.isim}">
+                        <h4 style="color: ${renk}; margin: 10px 0 5px 0;">${data.isim}</h4>
+                        <p style="margin: 0; font-size: 12px; color: #aaa;">Nadirlik: ${data.nadirlik}</p>
+                    `;
+                    listDiv.appendChild(card);
+                });
+
+                if(count === 0) {
+                    listDiv.innerHTML = "<p style='color:red;'>Veritabanında hiç canavar bulunamadı! Önce Python botunu çalıştır.</p>";
                 }
-            });
-            console.log("Canavarlar yüklendi!");
-        }
-
-        // 2. GİRİŞ VE SPAM KONTROLÜ
-        window.sistemeGiris = async function() {
-            const isim = document.getElementById("oyuncu-adi").value;
-            if(!isim) return;
-
-            if (localStorage.getItem("cihazMuhru")) {
-                alert("GÜVENLİK: Bu cihazda zaten bir hesap var!");
-                return;
-            }
-
-            const docRef = await addDoc(collection(db, "players"), {
-                username: isim,
-                coins: 100,
-                envanter: []
-            });
-            
-            localStorage.setItem("oyuncuID", docRef.id);
-            localStorage.setItem("cihazMuhru", "AKTIF");
-            location.reload();
-        };
-
-        // 3. KUTU AÇMA (GACHA)
-        window.kutuAc = async function() {
-            if(canavarHavuzu.yaygin.length === 0) {
-                alert("Veriler yükleniyor..."); return;
-            }
-
-            document.getElementById("gacha-normal").style.display = "none";
-            document.getElementById("gacha-bekleme").style.display = "block";
-
-            let r = Math.random();
-            let secilen;
-
-            if (r > 0.99 && canavarHavuzu.mitik.length > 0) secilen = canavarHavuzu.mitik;
-            else if (r > 0.94 && canavarHavuzu.efsanevi.length > 0) secilen = canavarHavuzu.efsanevi;
-            else if (r > 0.80 && canavarHavuzu.destansi.length > 0) secilen = canavarHavuzu.destansi;
-            else if (r > 0.50 && canavarHavuzu.nadir.length > 0) secilen = canavarHavuzu.nadir;
-            else secilen = canavarHavuzu.yaygin;
-
-            const kazanc = secilen[Math.floor(Math.random() * secilen.length)];
-
-            setTimeout(async () => {
-                const id = localStorage.getItem("oyuncuID");
-                await updateDoc(doc(db, "players", id), { envanter: arrayUnion(kazanc) });
-                
-                oyuncuEnvanteri.push(kazanc);
-                document.getElementById("gacha-bekleme").style.display = "none";
-                document.getElementById("gacha-sonuc").style.display = "block";
-                
-                const isimEtiket = document.getElementById("yeni-canavar-isim");
-                isimEtiket.innerText = kazanc.isim;
-                isimEtiket.style.color = kazanc.renk;
-                document.getElementById("yeni-canavar-nadir").innerText = kazanc.nadirlik;
-                document.getElementById("sonuc-cerceve").style.borderColor = kazanc.renk;
-                
-                arayuzuGuncelle();
-            }, 3000);
-        };
-
-        window.kapatSonuc = function() {
-            document.getElementById("gacha-sonuc").style.display = "none";
-            document.getElementById("gacha-normal").style.display = "block";
-        };
-
-        // 4. BAŞLATICI
-        async function sistemiBaslat() {
-            const id = localStorage.getItem("oyuncuID");
-            if(id) {
-                await canavarlariYukle();
-                const docSnap = await getDoc(doc(db, "players", id));
-                if(docSnap.exists()) {
-                    const data = docSnap.data();
-                    oyuncuEnvanteri = data.envanter || [];
-                    document.getElementById("giris-ekrani").style.display = "none";
-                    document.getElementById("oyun-ekrani").style.display = "block";
-                    document.getElementById("oyuncu-adi-display").innerText = data.username;
-                    arayuzuGuncelle();
-                }
+            } catch (error) {
+                console.error("Veri çekme hatası:", error);
+                listDiv.innerHTML = "<p style='color:red;'>Veritabanı bağlantı hatası!</p>";
             }
         }
-
-        function arayuzuGuncelle() {
-            const liste = document.getElementById("envanter-listesi");
-            liste.innerHTML = "";
-            oyuncuEnvanteri.forEach(c => {
-                const item = document.createElement("div");
-                item.className = "canavar-kart";
-                item.style.borderColor = c.renk;
-                item.innerHTML = `
-                    <img src="${c.resim}">
-                    <div style="color:${c.renk}; font-weight:bold">${c.isim}</div>
-                    <div style="font-size:0.7rem; color:#888">${c.nadirlik}</div>
-                `;
-                liste.appendChild(item);
-            });
-        }
-
-        sistemiBaslat();
     </script>
 </body>
 </html>

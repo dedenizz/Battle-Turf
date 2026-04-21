@@ -327,20 +327,34 @@
             }
         });
 
-        window.liderlikAc = async function() {
+                window.liderlikAc = async function() {
             document.getElementById("liderlik-ekrani").style.display = "flex";
             const liste = document.getElementById("liderlik-listesi");
-            liste.innerHTML = "<p style='color: white;'>Veriler Çekiliyor...</p>";
+            liste.innerHTML = "<p style='color: white; font-weight: bold;'>Sinyaller Taranıyor...</p>";
+            
             try {
                 const snap = await getDocs(collection(db, "players"));
                 let oyuncular = [];
+                
                 snap.forEach(doc => {
                     const data = doc.data();
-                    const envanter = data.envanter || [];
+                    
+                    // KORUMA 1: İsimsiz veya bozuk kayıtları (eski denemeleri) atla
+                    if (!data || !data.isim) return; 
+                    
+                    // KORUMA 2: Envanter array (liste) değilse boş liste kabul et
+                    const envanter = Array.isArray(data.envanter) ? data.envanter : [];
                     
                     let p = 0;
                     envanter.forEach(canavar => {
-                        const nk = (canavar.nadirlik || "yaygın").toLowerCase();
+                        if (!canavar) return;
+                        
+                        let nk = (canavar.nadirlik || "yaygın").toLowerCase();
+                        
+                        // KORUMA 3: Türkçe karakter farklılıklarını tolere et
+                        if (nk === "yaygin") nk = "yaygın";
+                        if (nk === "destansi") nk = "destansı";
+                        
                         p += (nadirlikPuanlari[nk] || 2);
                     });
                     
@@ -351,21 +365,33 @@
                 oyuncular.sort((a, b) => b.puan - a.puan);
                 liste.innerHTML = "";
                 
+                if (oyuncular.length === 0) {
+                    liste.innerHTML = "<p style='color: var(--metin-soluk);'>Henüz sıralamaya giren avcı yok.</p>";
+                    return;
+                }
+
                 oyuncular.slice(0, 10).forEach((oyuncu, index) => {
                     let siraSinifi = "";
-                    if(index === 0) siraSinifi = "sira-1"; else if(index === 1) siraSinifi = "sira-2"; else if(index === 2) siraSinifi = "sira-3";
+                    if(index === 0) siraSinifi = "sira-1"; 
+                    else if(index === 1) siraSinifi = "sira-2"; 
+                    else if(index === 2) siraSinifi = "sira-3";
+                    
                     liste.innerHTML += `
                         <div class="sira-satir ${siraSinifi}">
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <span style="font-size: 1.2rem; font-weight: 900; color: #555;">#${index + 1}</span>
-                                <span class="sira-isim">${oyuncu.isim} <span style="color:#00ffcc; font-size:0.8rem;">[Lv.${oyuncu.seviye}]</span></span>
+                                <span class="sira-isim">${oyuncu.isim} <span style="color:var(--vurgu-renk); font-size:0.8rem;">[Lv.${oyuncu.seviye}]</span></span>
                             </div>
                             <div class="sira-skor">${oyuncu.puan} Puan</div>
                         </div>
                     `;
                 });
-            } catch (e) { console.error(e); liste.innerHTML = "<p style='color: red;'>Bağlantı Hatası!</p>"; }
+            } catch (e) { 
+                console.error("Sıralama Hatası:", e); 
+                liste.innerHTML = "<p style='color: var(--kirmizi-alarm); font-weight: bold;'>Sıralama Yüklenemedi!</p><p style='font-size:0.8rem; color:#888;'>Firebase veritabanı kuralları (Rules) erişimi engelliyor olabilir.</p>"; 
+            }
         }
+
         
         window.liderlikKapat = () => document.getElementById("liderlik-ekrani").style.display = "none";
 

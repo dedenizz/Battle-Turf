@@ -1,6 +1,7 @@
 // We use the web links (CDN) for the imports so the browser understands them
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+// YENİ: getDocs buraya eklendi
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js"; // YENİ: Auth eklendi
 
 // Your exact Firebase configuration
@@ -17,6 +18,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); // YENİ: Auth başlatıldı
+
+// ---------------------------------------------------------
+// 🔥 EN ÖNEMLİ KISIM: KAPSAM (SCOPE) ÇÖZÜMÜ
+// index.html ve diğer dosyaların bu fonksiyonlara erişebilmesi
+// için onları tarayıcının "window" (küresel) objesine atıyoruz.
+// ---------------------------------------------------------
+window.db = db;
+window.collection = collection;
+window.getDocs = getDocs;
+window.addDoc = addDoc;
+
 
 // A function to test our connection by writing a fake player to the database
 async function testConnection() {

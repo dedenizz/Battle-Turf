@@ -156,27 +156,39 @@
         </div>
     </div>
 
-    <script type="module" src="app.js"></script>
+   <script type="module" src="app.js"></script>
 
     <script type="module">
         import { doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         
         let oyuncu = { isim: "", puan: 0, envanter: [], id: "" };
         const nadirlikPuanlari = { "yaygın": 2, "nadir": 5, "destansı": 15, "efsanevi": 50 };
-        
-        // 🔥 HİLE KORUMASI: AUTO CLICKER ENGELİ
         let butonKilitli = false; 
 
-        // --- CİHAZ MÜHRÜ KONTROLÜ ---
         window.onload = function() {
+            // 🔥 EKSİK OLAN KISIM: Yükleme ekranını kapatıp giriş ekranını zorla açıyoruz!
+            setTimeout(() => {
+                const baglantiEkrani = document.getElementById("baslangic-ekrani") || document.getElementById("loading-ekrani") || document.getElementById("status-text");
+                if (baglantiEkrani) baglantiEkrani.style.display = "none";
+                
+                const girisEkrani = document.getElementById("giris-ekrani");
+                if (girisEkrani) girisEkrani.style.display = "flex";
+            }, 800);
+
+            // --- CİHAZ MÜHRÜ KONTROLÜ ---
             const cihazMuhru = localStorage.getItem("cihazMuhru");
             if (cihazMuhru) {
                 const isimKutusu = document.getElementById("oyuncu-adi");
-                isimKutusu.value = cihazMuhru;
-                isimKutusu.disabled = true; // İsmi değiştirmesini engeller!
-                document.getElementById("hata-msj").innerText = "🔒 Cihaz Mührü Aktif. Yeni hesap açılamaz.";
-                document.getElementById("hata-msj").style.display = "block";
-                document.getElementById("hata-msj").style.color = "var(--vurgu-renk)";
+                if(isimKutusu) {
+                    isimKutusu.value = cihazMuhru;
+                    isimKutusu.disabled = true; // İsmi değiştirmesini engeller!
+                }
+                const hataMsj = document.getElementById("hata-msj");
+                if(hataMsj) {
+                    hataMsj.innerText = "🔒 Cihaz Mührü Aktif. Yeni hesap açılamaz.";
+                    hataMsj.style.display = "block";
+                    hataMsj.style.color = "var(--vurgu-renk)";
+                }
             }
         };
 
@@ -200,12 +212,14 @@
                 { bas: 910, bit: 920, tur: "teneffus", ad: "Teneffüs" },
                 { bas: 920, bit: 960, tur: "ders", ad: "8. Ders" }
             ];
-            let durum = { tur: "ders", ad: "Okul Dışı veya Derste" }; 
+            let durum = { tur: "ders", ad: "Okul Dışı/Derste" }; 
             for (let z of zamanCizelgesi) { if (toplamDakika >= z.bas && toplamDakika < z.bit) { durum = z; break; } }
             return durum;
         }
 
         window.oyunaBasla = async function() {
+            if (!window.db) return alert("Veritabanı bağlantısı kurulamadı. Lütfen sayfayı yenile.");
+            
             const isim = document.getElementById("oyuncu-adi").value.trim();
             if (!isim) { document.getElementById("hata-msj").style.display = "block"; return; }
             
@@ -220,7 +234,6 @@
                     oyuncu = userSnap.data();
                     oyuncu.id = userSnap.id;
                 } else {
-                    // Kayıt olurken mühür kontrolü (gizli sekme kullanmıyorsa engeller)
                     if (localStorage.getItem("cihazMuhru") && localStorage.getItem("cihazMuhru") !== isim) {
                         alert("Bu cihazda zaten kayıtlı bir kimliğin var. Başka hesap açamazsın!");
                         return;
@@ -234,11 +247,10 @@
                 document.getElementById("giris-ekrani").style.display = "none";
                 document.getElementById("oyun-paneli").style.display = "flex";
                 arayuzuGuncelle();
-            } catch (e) { console.error(e); alert("Bağlantı hatası! Lütfen internetinizi kontrol edin."); }
+            } catch (e) { console.error(e); alert("Bağlantı hatası! İnternetini kontrol et."); }
         };
 
         window.koduGir = async function() {
-            // 🔥 SPAM VE AUTO-CLICKER KORUMASI: Buton zaten çalışıyorsa işlemi reddet!
             if (butonKilitli) return; 
 
             const girilenKod = document.getElementById("kod-input").value.trim();
@@ -250,7 +262,7 @@
                 return;
             }
 
-            butonKilitli = true; // İŞLEM BAŞLADI, DİĞER TIKLAMALARI KİLİTLE
+            butonKilitli = true; 
 
             try {
                 const gameSnap = await getDoc(doc(window.db, "gameState", "carrier"));
@@ -258,7 +270,6 @@
 
                 if (gameData && gameData.aktifKod === girilenKod && gameData.durum === "aktif") {
                     
-                    // 🔥 KRİTİK HAMLE: Kodu doğru girdiği ilk milisaniyede sistemi PASİF yapar, başkası (veya kendi auto-clicker'ı) alamaz!
                     await updateDoc(doc(window.db, "gameState", "carrier"), { durum: "kullanildi" });
 
                     document.getElementById("gacha-ekrani").style.display = "flex";
@@ -271,7 +282,7 @@
 
                     oyuncu.envanter.push(secilen);
                     let yeniPuan = 0;
-                    oyuncu.envanter.forEach(c => yeniPuan += (nadirlikPuanlari[c.nadirlik.toLowerCase()] || 2));
+                    oyuncu.envanter.forEach(c => yeniPuan += (nadirlikPuanlari[c.nadirlik?.toLowerCase()] || 2));
                     oyuncu.puan = yeniPuan;
 
                     await updateDoc(doc(window.db, "players", oyuncu.id), {
@@ -284,14 +295,14 @@
                         document.getElementById("gacha-sonuc").style.display = "block";
                         document.getElementById("yeni-canavar-img").src = secilen.resim;
                         document.getElementById("yeni-canavar-isim").innerText = secilen.isim.replace(/_/g, " ");
-                        document.getElementById("yeni-canavar-nadir").innerText = secilen.nadirlik.toUpperCase();
+                        document.getElementById("yeni-canavar-nadir").innerText = (secilen.nadirlik || "YAYGIN").toUpperCase();
                         
-                        const renk = secilen.nadirlik.toLowerCase() === "destansı" ? "#ff3366" : "#00ffcc";
+                        const renk = secilen.nadirlik?.toLowerCase() === "destansı" ? "#ff3366" : "#00ffcc";
                         document.getElementById("gacha-resim-cerceve").style.borderColor = renk;
                         document.getElementById("yeni-canavar-nadir").style.background = renk;
                         arayuzuGuncelle();
                         
-                        butonKilitli = false; // İŞLEM BİTTİ, KİLİDİ AÇ
+                        butonKilitli = false; 
                     }, 2000);
 
                 } else { 
@@ -311,7 +322,7 @@
             const kol = document.getElementById("koleksiyon");
             kol.innerHTML = "";
             oyuncu.envanter.slice().reverse().forEach(c => {
-                const renk = c.nadirlik.toLowerCase() === "destansı" ? "#ff3366" : "#00ffcc";
+                const renk = c.nadirlik?.toLowerCase() === "destansı" ? "#ff3366" : "#00ffcc";
                 kol.innerHTML += `
                     <div class="canavar-kart">
                         <img src="${c.resim}" class="kart-img">
@@ -352,6 +363,4 @@
         window.gachaKapat = () => document.getElementById("gacha-ekrani").style.display = "none";
         window.cikisYap = () => { location.reload(); };
     </script>
-
-</body>
 </html>

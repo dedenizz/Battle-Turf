@@ -1,10 +1,9 @@
-// We use the web links (CDN) for the imports so the browser understands them
+// Firebase temel modüllerini (CDN üzerinden) içeri aktarıyoruz
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-// YENİ: getDocs buraya eklendi
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js"; // YENİ: Auth eklendi
+import { getFirestore, collection, getDocs, setDoc, doc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js"; 
 
-// Your exact Firebase configuration
+// Firebase Yapılandırman (Birebir seninki)
 const firebaseConfig = {
   apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
   authDomain: "gameoftame-7c63f.firebaseapp.com",
@@ -14,58 +13,29 @@ const firebaseConfig = {
   appId: "1:829948418870:web:02373ec1d4b170049fb197"
 };
 
-// Initialize Firebase, Database and Auth
+// 1. Firebase, Veritabanı ve Kimlik Doğrulama (Auth) sistemlerini başlat
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // YENİ: Auth başlatıldı
+const auth = getAuth(app); 
 
-// ---------------------------------------------------------
-// 🔥 EN ÖNEMLİ KISIM: KAPSAM (SCOPE) ÇÖZÜMÜ
-// index.html ve diğer dosyaların bu fonksiyonlara erişebilmesi
-// için onları tarayıcının "window" (küresel) objesine atıyoruz.
-// ---------------------------------------------------------
+// 2. index.html ve carrier.html'in kullanabilmesi için bunları "window" (küresel) objesine aktar
 window.db = db;
+window.auth = auth;
 window.collection = collection;
 window.getDocs = getDocs;
+window.setDoc = setDoc;
+window.doc = doc;
 window.addDoc = addDoc;
 
-
-// A function to test our connection by writing a fake player to the database
-async function testConnection() {
-    try {
-        // YENİ: Güvenlik kurallarını aşmak için önce gizli bir kimlik alıyoruz
-        await signInAnonymously(auth);
-
-        // We are telling it to go to the "players" folder and add this data
-        const docRef = await addDoc(collection(db, "players"), {
-            username: "TestPlayer01",
-            coins: 500,
-            inventory: ["Starter_Core"]
-        });
-        
-        console.log("Document written with ID: ", docRef.id);
-        
-        // Update the screen so you know it worked
-        const statusElement = document.getElementById("status-text");
-        if(statusElement) {
-            statusElement.innerHTML = `
-                <span style="color: #00ff00;">BAĞLANTI BAŞARILI! (GİZLİ KİMLİK ONAYLANDI)</span><br><br>
-                Player created with ID: ${docRef.id}
-            `;
-        }
-    } catch (e) {
-        console.error("Error adding document: ", e);
-        
-        // Update the screen if it fails
-        const statusElement = document.getElementById("status-text");
-        if(statusElement) {
-            statusElement.innerHTML = `
-                <span style="color: #ff0000;">BAĞLANTI FAILED!</span><br><br>
-                Güvenlik kurallarında veya Authentication ayarlarında bir sorun var.
-            `;
-        }
-    }
-}
-
-// Run the test
-testConnection();
+// 3. OTO-GİRİŞ SİSTEMİ (Güvenlik kurallarındaki "request.auth != null" kilidini açar)
+// Sayfa yüklendiği anda arka planda oyuncuya anonim bir kimlik veriyoruz.
+signInAnonymously(auth)
+  .then((userCredential) => {
+      // Başarılı olursa konsola bilgi ver
+      const uid = userCredential.user.uid;
+      console.log("Sistem Aktif: Gizli kimlik doğrulandı! UID:", uid);
+  })
+  .catch((error) => {
+      // Hata olursa konsola yazdır (Genellikle Rules veya Firebase ayarlarından kaynaklanır)
+      console.error("Kimlik doğrulama hatası:", error.code, error.message);
+  });

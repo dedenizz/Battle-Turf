@@ -137,6 +137,14 @@
         </div>
     </div>
 
+    <div id="liderlik-ekrani" class="modal-overlay">
+        <div class="liderlik-kutu">
+            <h2 style="color: var(--altin); margin-top: 0;">🏆 LİDERLİK TABLOSU</h2>
+            <div id="liderlik-listesi" style="margin-top: 20px; text-align: left;"></div>
+            <button class="btn" style="margin-top: 20px; background: #333; color: white;" onclick="liderlikKapat()">KAPAT</button>
+        </div>
+    </div>
+
     <div id="gacha-ekrani" class="modal-overlay">
         <div id="gacha-bekleme" class="gacha-kapsul">?</div>
         <div id="gacha-sonuc" class="gacha-sonuc">
@@ -171,7 +179,6 @@
         
         const nadirlikPuanlari = { "yaygın": 2, "nadir": 5, "destansı": 10, "efsanevi": 20, "mitik": 50 };
 
-        // 🔥 YENİ EKLENEN: DERS SAATİ KONTROL FONKSİYONU
         function zamanDurumuKontrol() {
             const simdi = new Date();
             const toplamDakika = (simdi.getHours() * 60) + simdi.getMinutes();
@@ -319,7 +326,6 @@
             });
         }
 
-        // 🔥 YENİ EKLENEN: ARAYÜZÜ SAATE GÖRE KİLİTLEYEN FONKSİYON
         let sonDocSnapData = null;
         function radarArayuzunuGuncelle(docSnapData) {
             const radar = document.getElementById("radar-durum"); 
@@ -331,14 +337,15 @@
 
             const durum = zamanDurumuKontrol();
 
+            // YENİ DÜZENLEME: DERS ve TENEFFÜS Tepkileri Ayrıldı
             if (durum.tur === "ders") {
                 radar.style.display = "block"; tasiyiciModu.style.display = "none"; avciModu.style.display = "block";
                 radar.innerText = `SİSTEM KAPALI: ${durum.ad.toUpperCase()}`; 
-                radar.style.color = "var(--metin-soluk)"; 
+                radar.style.color = "var(--kirmizi-alarm)"; // Ders saatinde kırmızı uyarır
                 radar.style.animation = "none";
                 kodKutusu.disabled = true; 
                 buton.disabled = true;
-                return; // Eğer dersteyse alttaki işlemleri iptal eder ve kilitler.
+                return; // Dersteyse taşıyıcı aramayı kilitler
             }
 
             if (docSnapData && docSnapData.durum === "aktif") {
@@ -352,7 +359,17 @@
                 }
             } else {
                 radar.style.display = "block"; tasiyiciModu.style.display = "none"; avciModu.style.display = "block";
-                radar.innerText = "SİSTEM BEKLEMEDE VEYA KAPALI"; radar.style.color = "var(--metin-soluk)"; radar.style.animation = "none";
+                
+                if (durum.tur === "teneffus") {
+                    radar.innerText = "TENEFFÜS VAKTİ! SİNYAL BEKLENİYOR..."; 
+                    radar.style.color = "var(--vurgu-renk)"; // Teneffüste mavi bekler
+                    radar.style.animation = "yanipSonme 2s infinite";
+                } else {
+                    radar.innerText = "SİSTEM BEKLEMEDE VEYA KAPALI"; 
+                    radar.style.color = "var(--metin-soluk)"; 
+                    radar.style.animation = "none";
+                }
+                
                 kodKutusu.disabled = true; buton.disabled = true;
             }
         }
@@ -363,7 +380,6 @@
             radarArayuzunuGuncelle(sonDocSnapData);
         });
 
-        // 🔥 Her 10 saniyede bir saati kontrol edip ders başladığında radarı otomatik kilitler
         setInterval(() => {
             radarArayuzunuGuncelle(sonDocSnapData);
         }, 10000);
@@ -371,7 +387,7 @@
         window.liderlikAc = async function() {
             document.getElementById("liderlik-ekrani").style.display = "flex";
             const liste = document.getElementById("liderlik-listesi");
-            liste.innerHTML = "<p style='color: white;'>Veriler Çekiliyor...</p>";
+            liste.innerHTML = "<p style='color: white; text-align: center;'>Veriler Çekiliyor...</p>";
             try {
                 const snap = await getDocs(collection(db, "players"));
                 let oyuncular = [];
@@ -405,13 +421,12 @@
                         </div>
                     `;
                 });
-            } catch (e) { console.error(e); liste.innerHTML = "<p style='color: red;'>Bağlantı Hatası!</p>"; }
+            } catch (e) { console.error(e); liste.innerHTML = "<p style='color: red; text-align: center;'>Bağlantı Hatası!</p>"; }
         }
         
         window.liderlikKapat = () => document.getElementById("liderlik-ekrani").style.display = "none";
 
         window.koduCozVeCevir = async function() {
-            // 🔥 YENİ: Kod butonu tıklandığında saati bir daha garanti olması için kontrol et
             const durum = zamanDurumuKontrol();
             if (durum.tur === "ders") {
                 alert(`Sinyal Kesildi! Şu an ${durum.ad} vaktindeyiz. Avlanmak için teneffüsü beklemelisin.`);

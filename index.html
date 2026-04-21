@@ -15,6 +15,9 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; background-color: var(--arka-plan); color: var(--metin); font-family: 'Montserrat', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
+        /* Tüm hata ve yükleme ekranlarını gizle */
+        #status-text, #loading-ekrani, #baslangic-ekrani { display: none !important; }
+
         #giris-ekrani { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--arka-plan); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .giris-kutu { background: var(--panel); padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #2a2c35; }
         .input-text { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 1.2rem; text-align: center; outline: none; font-family: 'Roboto Mono', monospace; }
@@ -33,7 +36,6 @@
         .btn-sirala { background: transparent; color: var(--altin); border: 1px solid var(--altin); padding: 5px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem;}
         .btn-sirala:hover { background: var(--altin); color: #000; }
 
-        /* MOBİL UYUMLU DÜZEN */
         .ana-ekran { display: flex; flex-direction: column; flex: 1; overflow-y: auto; }
         .sol-panel { padding: 20px; border-bottom: 1px solid #2a2c35; }
         .sag-panel { background: #14151b; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; }
@@ -89,7 +91,7 @@
             <p style="color: var(--metin-soluk); font-size: 0.9rem;">Sisteme bağlanmak için adını ve PIN'ini gir.</p>
             <input type="text" id="kullanici-adi" class="input-text" placeholder="İSİM" maxlength="12">
             <input type="password" id="kullanici-pin" class="input-text" placeholder="4 HANELİ PİN" maxlength="4" pattern="\d*">
-            <button class="btn" id="baglan-btn" onclick="hesapOlustur()">SİSTEM YÜKLENİYOR...</button>
+            <button class="btn" id="baglan-btn" onclick="hesapOlustur()" disabled>SİSTEM YÜKLENİYOR...</button>
             <p id="giris-durum" style="margin-top: 15px; color: var(--kirmizi-alarm); font-weight: bold;"></p>
             
             <button onclick="muhruSifirla()" style="margin-top: 10px; background: transparent; color: #555; border: 1px solid #555; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">Cihaz Mührünü Sıfırla</button>
@@ -156,40 +158,77 @@
         </div>
     </div>
 
-   <script type="module">
-        import { doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    <script type="module" src="app.js"></script>
+
+    <script type="module">
+        import { doc, getDoc, setDoc, updateDoc, collection, getDocs, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         
         let oyuncu = { isim: "", puan: 0, envanter: [], id: "" };
-        const nadirlikPuanlari = { "yaygın": 2, "nadir": 5, "destansı": 15, "efsanevi": 50 };
+        let canavarHavuzu = { yaygin: [], nadir: [], destansi: [], efsanevi: [], mitik: [] };
+        const nadirlikPuanlari = { "yaygın": 2, "nadir": 5, "destansı": 10, "efsanevi": 20, "mitik": 50 };
         let butonKilitli = false; 
+        let sonDocSnapData = null;
 
-        // 🔥 DÜZELTME BURADA: window.onload engeline takılmadan ekranı anında açıyoruz!
-        setTimeout(() => {
-            const beklemeYazisi = document.getElementById("status-text");
-            if (beklemeYazisi) beklemeYazisi.style.display = "none";
-            
-            const baslangicEkrani = document.getElementById("baslangic-ekrani");
-            if (baslangicEkrani) baslangicEkrani.style.display = "none";
-
-            const girisEkrani = document.getElementById("giris-ekrani");
-            if (girisEkrani) girisEkrani.style.display = "flex";
-
-            // --- CİHAZ MÜHRÜ KONTROLÜ ---
+        window.onload = function() {
+            // Mühür Kontrolü
             const cihazMuhru = localStorage.getItem("cihazMuhru");
             if (cihazMuhru) {
-                const isimKutusu = document.getElementById("oyuncu-adi");
+                const isimKutusu = document.getElementById("kullanici-adi");
                 if(isimKutusu) {
                     isimKutusu.value = cihazMuhru;
                     isimKutusu.disabled = true;
                 }
-                const hataMsj = document.getElementById("hata-msj");
-                if(hataMsj) {
-                    hataMsj.innerText = "🔒 Cihaz Mührü Aktif. Yeni hesap açılamaz.";
-                    hataMsj.style.display = "block";
-                    hataMsj.style.color = "var(--vurgu-renk)";
+                const durumMsj = document.getElementById("giris-durum");
+                if(durumMsj) {
+                    durumMsj.innerText = "🔒 Cihaz Mührü Aktif. Yeni Hesap Açılamaz.";
+                    durumMsj.style.color = "var(--vurgu-renk)";
                 }
             }
-        }, 500); // Sayfa açıldıktan yarım saniye sonra kesin tetiklenir
+        };
+
+        window.muhruSifirla = function() {
+            localStorage.removeItem("cihazMuhru");
+            localStorage.removeItem("oyuncuID");
+            location.reload(); 
+        };
+
+        async function canavarlariCek() {
+            try {
+                const querySnapshot = await getDocs(collection(window.db, "canavarlar"));
+                let veriSayisi = 0;
+                querySnapshot.forEach((d) => {
+                    const c = d.data(); 
+                    if (!c.isim) return; 
+                    veriSayisi++;
+                    const nadirlikKucuk = c.nadirlik ? c.nadirlik.toLowerCase() : "yaygın";
+                    if(canavarHavuzu[nadirlikKucuk]) { canavarHavuzu[nadirlikKucuk].push(c); } 
+                    else { canavarHavuzu.yaygin.push(c); }
+                });
+                
+                const btn = document.getElementById("baglan-btn");
+                if (btn) { 
+                    btn.innerText = veriSayisi > 0 ? "SİSTEME BAĞLAN" : "SİSTEME BAĞLAN (HAVUZ BOŞ)"; 
+                    btn.disabled = false; 
+                }
+            } catch (error) {
+                console.error(error); 
+                const btn = document.getElementById("baglan-btn");
+                if(btn) {
+                    btn.innerText = "BAĞLANTI HATASI (YİNE DE DENE)";
+                    btn.style.background = "var(--kirmizi-alarm)";
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // app.js'in veritabanını yüklemesini saniyede bir kontrol et
+        let dbKontrol = setInterval(() => {
+            if (window.db) {
+                clearInterval(dbKontrol);
+                canavarlariCek();
+                baslatRadar();
+            }
+        }, 500);
 
         function zamanDurumuKontrol() {
             const simdi = new Date();
@@ -216,45 +255,161 @@
             return durum;
         }
 
-        window.oyunaBasla = async function() {
-            // Eğer Firebase yüklenmeye yetişemezse diye küçük bir güvenlik
-            if (!window.db) return alert("Sistem bağlantısı kuruluyor, lütfen 1-2 saniye bekleyip tekrar bas.");
+        window.hesapOlustur = async function() {
+            const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();
+            const pin = document.getElementById("kullanici-pin").value.trim();
+            const durumMsj = document.getElementById("giris-durum");
             
-            const isim = document.getElementById("oyuncu-adi").value.trim();
-            if (!isim) { document.getElementById("hata-msj").style.display = "block"; return; }
+            if (kullaniciAdi.length < 3 || pin.length !== 4) { 
+                if(durumMsj) durumMsj.innerText = "Hatalı İsim veya 4 Haneli PIN."; return; 
+            }
             
-            oyuncu.isim = isim;
-            oyuncu.id = "p-" + isim.toLowerCase().replace(/\s/g, "-");
-            
+            oyuncu.isim = kullaniciAdi;
+            oyuncu.id = "p-" + kullaniciAdi.replace(/\s/g, "-");
+
             try {
+                if(durumMsj) durumMsj.innerText = "Kimlik Doğrulanıyor...";
                 const userRef = doc(window.db, "players", oyuncu.id);
                 const userSnap = await getDoc(userRef);
 
                 if (userSnap.exists()) {
-                    oyuncu = userSnap.data();
-                    oyuncu.id = userSnap.id;
-                } else {
-                    if (localStorage.getItem("cihazMuhru") && localStorage.getItem("cihazMuhru") !== isim) {
-                        alert("Bu cihazda zaten kayıtlı bir kimliğin var. Başka hesap açamazsın!");
-                        return;
+                    if (userSnap.data().pin === pin) {
+                        oyuncu = userSnap.data();
+                        oyuncu.id = userSnap.id;
+                        if(!oyuncu.envanter) oyuncu.envanter = [];
+                        if(!oyuncu.puan) oyuncu.puan = 0;
+                    } else {
+                        if(durumMsj) durumMsj.innerText = "⚠ Hatalı PIN! Kurucuya başvur."; return;
                     }
-                    await setDoc(userRef, { isim: isim, puan: 0, envanter: [], seviye: 1 });
-                    oyuncu = { isim: isim, puan: 0, envanter: [], id: userRef.id };
+                } else {
+                    const muhur = localStorage.getItem("cihazMuhru");
+                    if (muhur && muhur !== kullaniciAdi) {
+                        if(durumMsj) durumMsj.innerText = "Bu cihaz başka bir hesaba mühürlü!"; return;
+                    }
+                    await setDoc(userRef, { isim: kullaniciAdi, pin: pin, puan: 0, envanter: [], seviye: 1 });
+                    oyuncu = { isim: kullaniciAdi, pin: pin, puan: 0, envanter: [], id: userRef.id };
                 }
 
-                localStorage.setItem("cihazMuhru", isim); 
+                localStorage.setItem("cihazMuhru", kullaniciAdi); 
+                localStorage.setItem("oyuncuID", oyuncu.id);
 
                 document.getElementById("giris-ekrani").style.display = "none";
-                document.getElementById("oyun-paneli").style.display = "flex";
+                document.getElementById("ana-uygulama").style.display = "flex";
                 arayuzuGuncelle();
-            } catch (e) { console.error(e); alert("Bağlantı hatası! İnternetini kontrol et."); }
+            } catch (e) { 
+                console.error(e); 
+                if(durumMsj) durumMsj.innerText = "Bağlantı hatası! Güvenlik kurallarını kontrol et."; 
+            }
         };
 
-        window.koduGir = async function() {
-            if (butonKilitli) return; 
+        function arayuzuGuncelle() {
+            const isimEl = document.getElementById("ekran-isim");
+            if(isimEl) isimEl.innerText = oyuncu.isim.toUpperCase();
+            
+            let toplamPuan = 0;
+            oyuncu.envanter.forEach(c => {
+                const nKucuk = (c.nadirlik || "yaygın").toLowerCase();
+                toplamPuan += (nadirlikPuanlari[nKucuk] || 2);
+            });
+            oyuncu.puan = toplamPuan;
+            const avciSeviyesi = Math.floor(toplamPuan / 50) + 1;
+            
+            const sevEl = document.getElementById("oyuncu-seviye-text");
+            if(sevEl) sevEl.innerText = `Seviye ${avciSeviyesi} Avcı`;
+            
+            const puanEl = document.getElementById("oyuncu-puan-text");
+            if(puanEl) puanEl.innerText = `${toplamPuan} Puan`;
 
-            const girilenKod = document.getElementById("kod-input").value.trim();
-            if (girilenKod.length !== 4) return alert("Kod 4 haneli olmalı!");
+            const kolSayi = document.getElementById("koleksiyon-sayisi");
+            if(kolSayi) kolSayi.innerText = oyuncu.envanter.length;
+
+            const grid = document.getElementById("envanter-listesi");
+            if(grid) {
+                grid.innerHTML = ""; 
+                const nadirlikSirasi = { "mitik": 5, "efsanevi": 4, "destansi": 3, "nadir": 2, "yaygın": 1 };
+                let siraliEnvanter = [...oyuncu.envanter];
+                siraliEnvanter.sort((a, b) => {
+                    const nadirA = (a.nadirlik || "yaygın").toLowerCase(); 
+                    const nadirB = (b.nadirlik || "yaygın").toLowerCase();
+                    return (nadirlikSirasi[nadirB] || 0) - (nadirlikSirasi[nadirA] || 0);
+                });
+                
+                siraliEnvanter.forEach(canavar => {
+                    const kart = document.createElement("div"); 
+                    kart.className = "canavar-kart"; 
+                    kart.style.borderColor = canavar.renk || "#fff";
+                    kart.innerHTML = `<div class="canavar-resim"><img src="${canavar.resim}" alt="${canavar.isim}"></div>
+                                      <div class="canavar-isim" style="color: ${canavar.renk || '#fff'};">${canavar.isim.replace(/_/g, " ")}</div>
+                                      <div class="nadir-etiket" style="color: ${canavar.renk || '#fff'}; border: 1px solid ${canavar.renk || '#fff'}">${(canavar.nadirlik || "Yaygın").toUpperCase()}</div>`;
+                    grid.appendChild(kart);
+                });
+            }
+        }
+
+        function radarArayuzunuGuncelle(docSnapData) {
+            const radar = document.getElementById("radar-durum"); 
+            const avciModu = document.getElementById("avci-modu");
+            const tasiyiciModu = document.getElementById("tasiyici-modu"); 
+            const kodKutusu = document.getElementById("hedef-kod");
+            const buton = document.querySelector(".btn-cevir"); 
+            const benimID = oyuncu.id || localStorage.getItem("oyuncuID");
+            const durum = zamanDurumuKontrol();
+
+            if (durum.tur === "ders") {
+                if(radar) { radar.style.display = "block"; radar.innerText = `SİSTEM KAPALI: ${durum.ad.toUpperCase()}`; radar.style.color = "var(--kirmizi-alarm)"; radar.style.animation = "none"; }
+                if(tasiyiciModu) tasiyiciModu.style.display = "none"; 
+                if(avciModu) avciModu.style.display = "block";
+                if(kodKutusu) kodKutusu.disabled = true; 
+                if(buton) buton.disabled = true;
+                return; 
+            }
+
+            if (docSnapData && docSnapData.durum === "aktif") {
+                if (docSnapData.hedefOyuncuID === benimID) {
+                    if(radar) radar.style.display = "none"; 
+                    if(avciModu) avciModu.style.display = "none"; 
+                    if(tasiyiciModu) tasiyiciModu.style.display = "block";
+                    if(document.getElementById("benim-kodum")) document.getElementById("benim-kodum").innerText = docSnapData.aktifKod;
+                } else {
+                    if(radar) { radar.style.display = "block"; radar.innerText = `⚠ HEDEF TESPİT EDİLDİ: ${docSnapData.hedefIsim.toUpperCase()} ⚠`; radar.style.color = "var(--kirmizi-alarm)"; radar.style.animation = "yanipSonme 2s infinite"; }
+                    if(tasiyiciModu) tasiyiciModu.style.display = "none"; 
+                    if(avciModu) avciModu.style.display = "block";
+                    if(kodKutusu) kodKutusu.disabled = false; 
+                    if(buton) buton.disabled = false;
+                }
+            } else {
+                if(radar) { 
+                    radar.style.display = "block"; 
+                    if (durum.tur === "teneffus") {
+                        radar.innerText = "TENEFFÜS VAKTİ! SİNYAL BEKLENİYOR..."; 
+                        radar.style.color = "var(--vurgu-renk)"; 
+                        radar.style.animation = "yanipSonme 2s infinite";
+                    } else {
+                        radar.innerText = "SİSTEM BEKLEMEDE VEYA KAPALI"; 
+                        radar.style.color = "var(--metin-soluk)"; 
+                        radar.style.animation = "none";
+                    }
+                }
+                if(tasiyiciModu) tasiyiciModu.style.display = "none"; 
+                if(avciModu) avciModu.style.display = "block";
+                if(kodKutusu) kodKutusu.disabled = true; 
+                if(buton) buton.disabled = true;
+            }
+        }
+
+        function baslatRadar() {
+            const tasiyiciRef = doc(window.db, "gameState", "carrier");
+            onSnapshot(tasiyiciRef, (docSnap) => {
+                sonDocSnapData = docSnap.exists() ? docSnap.data() : null;
+                radarArayuzunuGuncelle(sonDocSnapData);
+            });
+            setInterval(() => radarArayuzunuGuncelle(sonDocSnapData), 10000);
+        }
+
+        window.koduCozVeCevir = async function() {
+            if (butonKilitli) return; 
+            const girilenKod = document.getElementById("hedef-kod").value.trim().toUpperCase(); 
+            if (girilenKod.length < 4) return alert("Geçersiz kod!");
 
             const durum = zamanDurumuKontrol();
             if (durum.tur === "ders") {
@@ -263,32 +418,30 @@
             }
 
             butonKilitli = true; 
-
             try {
                 const gameSnap = await getDoc(doc(window.db, "gameState", "carrier"));
                 const gameData = gameSnap.data();
 
                 if (gameData && gameData.aktifKod === girilenKod && gameData.durum === "aktif") {
-                    
+                    // Kullanıldı olarak işaretle (Spam Engeli)
                     await updateDoc(doc(window.db, "gameState", "carrier"), { durum: "kullanildi" });
 
                     document.getElementById("gacha-ekrani").style.display = "flex";
-                    document.getElementById("gacha-bekleme").style.display = "block";
+                    document.getElementById("gacha-bekleme").style.display = "flex";
                     document.getElementById("gacha-sonuc").style.display = "none";
 
-                    const monstersSnap = await getDocs(collection(window.db, "canavarlar"));
-                    const allMonsters = monstersSnap.docs.map(d => d.data());
-                    const secilen = allMonsters[Math.floor(Math.random() * allMonsters.length)];
+                    let havuz = canavarHavuzu.yaygin;
+                    const sans = Math.random() * 100; 
+                    if (sans <= 0.1 && canavarHavuzu.mitik.length > 0) havuz = canavarHavuzu.mitik;            
+                    else if (sans <= 5 && canavarHavuzu.efsanevi.length > 0) havuz = canavarHavuzu.efsanevi;      
+                    else if (sans <= 20 && canavarHavuzu.destansi.length > 0) havuz = canavarHavuzu.destansi;    
+                    else if (sans <= 50 && canavarHavuzu.nadir.length > 0) havuz = canavarHavuzu.nadir;        
+                    else if (canavarHavuzu.yaygin.length === 0) havuz = Object.values(canavarHavuzu).flat();                      
+
+                    const secilen = havuz[Math.floor(Math.random() * havuz.length)];
 
                     oyuncu.envanter.push(secilen);
-                    let yeniPuan = 0;
-                    oyuncu.envanter.forEach(c => yeniPuan += (nadirlikPuanlari[c.nadirlik?.toLowerCase()] || 2));
-                    oyuncu.puan = yeniPuan;
-
-                    await updateDoc(doc(window.db, "players", oyuncu.id), {
-                        envanter: oyuncu.envanter,
-                        puan: oyuncu.puan
-                    });
+                    await updateDoc(doc(window.db, "players", oyuncu.id), { envanter: oyuncu.envanter });
 
                     setTimeout(() => {
                         document.getElementById("gacha-bekleme").style.display = "none";
@@ -297,11 +450,12 @@
                         document.getElementById("yeni-canavar-isim").innerText = secilen.isim.replace(/_/g, " ");
                         document.getElementById("yeni-canavar-nadir").innerText = (secilen.nadirlik || "YAYGIN").toUpperCase();
                         
-                        const renk = secilen.nadirlik?.toLowerCase() === "destansı" ? "#ff3366" : "#00ffcc";
+                        const renk = secilen.renk || "#00ffcc";
                         document.getElementById("gacha-resim-cerceve").style.borderColor = renk;
                         document.getElementById("yeni-canavar-nadir").style.background = renk;
-                        arayuzuGuncelle();
+                        document.getElementById("hedef-kod").value = "";
                         
+                        arayuzuGuncelle();
                         butonKilitli = false; 
                     }, 2000);
 
@@ -316,34 +470,22 @@
             }
         };
 
-        function arayuzuGuncelle() {
-            document.getElementById("ekran-isim").innerText = oyuncu.isim.toUpperCase();
-            document.getElementById("ekran-puan").innerText = oyuncu.puan;
-            const kol = document.getElementById("koleksiyon");
-            kol.innerHTML = "";
-            oyuncu.envanter.slice().reverse().forEach(c => {
-                const renk = c.nadirlik?.toLowerCase() === "destansı" ? "#ff3366" : "#00ffcc";
-                kol.innerHTML += `
-                    <div class="canavar-kart">
-                        <img src="${c.resim}" class="kart-img">
-                        <div class="kart-isim">${c.isim.replace(/_/g, " ")}</div>
-                        <div class="kart-nadir" style="background:${renk}">${c.nadirlik}</div>
-                    </div>
-                `;
-            });
-        }
-
         window.liderlikAc = async function() {
             document.getElementById("liderlik-ekrani").style.display = "flex";
             const liste = document.getElementById("liderlik-listesi");
-            liste.innerHTML = "<div class='yukleniyor-spinner'></div>";
-            
+            liste.innerHTML = "<p style='color: white; text-align: center;'>Veriler Çekiliyor...</p>";
             try {
                 const snap = await getDocs(collection(window.db, "players"));
                 let oyuncular = [];
                 snap.forEach(d => {
                     const data = d.data();
-                    if(data.isim) oyuncular.push(data);
+                    let p = 0;
+                    (data.envanter || []).forEach(c => {
+                        const nk = (c.nadirlik || "yaygın").toLowerCase();
+                        p += (nadirlikPuanlari[nk] || 2);
+                    });
+                    const lv = Math.floor(p / 50) + 1;
+                    if(data.isim) oyuncular.push({ isim: data.isim, puan: p, seviye: lv });
                 });
                 
                 oyuncular.sort((a, b) => b.puan - a.puan);
@@ -352,15 +494,20 @@
                     const siraSinifi = i === 0 ? "sira-1" : i === 1 ? "sira-2" : i === 2 ? "sira-3" : "";
                     liste.innerHTML += `
                         <div class="sira-satir ${siraSinifi}">
-                            <div class="sira-isim">#${i+1} ${o.isim}</div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span style="font-size: 1.2rem; font-weight: 900; color: #555;">#${i + 1}</span>
+                                <span class="sira-isim">${o.isim} <span style="color:#00ffcc; font-size:0.8rem;">[Lv.${o.seviye}]</span></span>
+                            </div>
                             <div class="sira-skor">${o.puan} Puan</div>
                         </div>
                     `;
                 });
-            } catch (e) { liste.innerHTML = "Veriler yüklenemedi."; }
-        };
+            } catch (e) { console.error(e); liste.innerHTML = "<p style='color: red; text-align: center;'>Bağlantı Hatası!</p>"; }
+        }
 
+        window.liderlikKapat = () => document.getElementById("liderlik-ekrani").style.display = "none";
         window.gachaKapat = () => document.getElementById("gacha-ekrani").style.display = "none";
         window.cikisYap = () => { location.reload(); };
     </script>
+</body>
 </html>

@@ -12,84 +12,104 @@
 <body>
 
     <h1>SİSTEM YÖNETİCİSİ (GAME MASTER)</h1>
-    <p>Bu ekranı kapatma. Oyunun otomatik çalışmasını sağlar.</p>
+    <p>Bu ekranı kapatma. Oyunun otonom çalışmasını sağlar.</p>
     
     <div class="kutu">
+        <h3>DURUM: <span id="sistem-durum">BEKLENİYOR</span></h3>
         <h3>ŞU ANKİ TAŞIYICI: <span id="aktif-tasiyici" style="color: #ff3366;">YOK</span></h3>
         <h1 id="aktif-kod" style="font-size: 4rem; margin: 10px;">----</h1>
     </div><br>
 
     <button id="dongu-btn" onclick="donguyuBaslat()">OTOMATİK DÖNGÜYÜ BAŞLAT</button>
-    <p id="durum-log" style="color: #888; margin-top: 20px;"></p>
+    <p id="durum-log"></p>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
-          apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
-          authDomain: "gameoftame-7c63f.firebaseapp.com",
-          projectId: "gameoftame-7c63f",
-          storageBucket: "gameoftame-7c63f.firebasestorage.app",
-          messagingSenderId: "829948418870",
-          appId: "1:829948418870:web:02373ec1d4b170049fb197"
+            apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
+            authDomain: "gameoftame-7c63f.firebaseapp.com",
+            projectId: "gameoftame-7c63f",
+            storageBucket: "gameoftame-7c63f.firebasestorage.app",
+            messagingSenderId: "829948418870",
+            appId: "1:829948418870:web:02373ec1d4b170049fb197"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        let donguAktif = false; let timer;
 
-        let donguAktif = false;
-        let timer;
+        function zamanDurumuKontrol() {
+            const simdi = new Date();
+            const toplamDakika = (simdi.getHours() * 60) + simdi.getMinutes();
+            const zamanCizelgesi = [
+                { bas: 540, bit: 580, tur: "ders", ad: "1. Ders" },
+                { bas: 580, bit: 590, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 590, bit: 630, tur: "ders", ad: "2. Ders" },
+                { bas: 630, bit: 640, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 640, bit: 680, tur: "ders", ad: "3. Ders" },
+                { bas: 680, bit: 690, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 690, bit: 730, tur: "ders", ad: "4. Ders" },
+                { bas: 730, bit: 770, tur: "teneffus", ad: "Öğle Arası" },
+                { bas: 770, bit: 810, tur: "ders", ad: "5. Ders" },
+                { bas: 810, bit: 820, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 820, bit: 860, tur: "ders", ad: "6. Ders" },
+                { bas: 860, bit: 870, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 870, bit: 910, tur: "ders", ad: "7. Ders" },
+                { bas: 910, bit: 920, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 920, bit: 960, tur: "ders", ad: "8. Ders" }
+            ];
+            let durum = { tur: "ders", ad: "Okul Dışı/Derste" };
+            for (let z of zamanCizelgesi) { if (toplamDakika >= z.bas && toplamDakika < z.bit) { durum = z; break; } }
+            return durum;
+        }
 
-        async function yeniTasiyiciSec() {
+        window.yeniTasiyiciSec = async function() {
             const log = document.getElementById("durum-log");
-            log.innerText = "Veritabanından oyuncular çekiliyor...";
+            const durum = zamanDurumuKontrol();
+
+            // DERSTEYSE SİSTEMİ KAPATIR VE KİMSEYE KOD VERMEZ!
+            if (durum.tur === "ders") {
+                document.getElementById("sistem-durum").innerText = `KAPALI (${durum.ad})`;
+                document.getElementById("sistem-durum").style.color = "#ff3366";
+                document.getElementById("aktif-tasiyici").innerText = "YOK";
+                document.getElementById("aktif-kod").innerText = "----";
+                
+                await setDoc(doc(db, "gameState", "carrier"), { durum: "pasif", hedefIsim: "DERS VAKTİ", aktifKod: "----", zamanDamgasi: Date.now() });
+                log.innerText = `Şu an ${durum.ad}. Teneffüs bekleniyor...`;
+                return;
+            }
+
+            document.getElementById("sistem-durum").innerText = "AKTİF (TENEFFÜS)";
+            document.getElementById("sistem-durum").style.color = "#00ffcc";
 
             try {
-                // Bütün oyuncuları bul
-                const snap = await getDocs(collection(db, "players"));
-                const oyuncular = [];
-                snap.forEach(doc => oyuncular.push({ id: doc.id, isim: doc.data().isim }));
+                const playersSnap = await getDocs(collection(db, "players"));
+                let oyuncular = [];
+                playersSnap.forEach(doc => oyuncular.push({ id: doc.id, isim: doc.data().isim }));
 
-                if (oyuncular.length === 0) {
-                    log.innerText = "Sistemde hiç oyuncu yok! Bekleniyor...";
-                    return;
+                if (oyuncular.length > 0) {
+                    const secilen = oyuncular[Math.floor(Math.random() * oyuncular.length)];
+                    const yeniKod = Math.floor(1000 + Math.random() * 9000).toString();
+
+                    await setDoc(doc(db, "gameState", "carrier"), { hedefOyuncuID: secilen.id, hedefIsim: secilen.isim, aktifKod: yeniKod, durum: "aktif", zamanDamgasi: Date.now() });
+
+                    document.getElementById("aktif-tasiyici").innerText = secilen.isim.toUpperCase();
+                    document.getElementById("aktif-kod").innerText = yeniKod;
+                    log.innerText = "Yeni taşıyıcı atandı!";
                 }
-
-                // Rastgele birini seç ve kod üret
-                const secilen = oyuncular[Math.floor(Math.random() * oyuncular.length)];
-                const yeniKod = Math.floor(1000 + Math.random() * 9000).toString();
-
-                // Firebase'e yaz
-                await setDoc(doc(db, "gameState", "carrier"), {
-                    hedefOyuncuID: secilen.id,
-                    hedefIsim: secilen.isim,
-                    aktifKod: yeniKod,
-                    durum: "aktif",
-                    zamanDamgasi: Date.now()
-                });
-
-                document.getElementById("aktif-tasiyici").innerText = secilen.isim.toUpperCase();
-                document.getElementById("aktif-kod").innerText = yeniKod;
-                log.innerText = "Yeni taşıyıcı atandı. Sıradaki değişim bekleniyor...";
-
-            } catch (e) {
-                console.error(e);
-                log.innerText = "Hata oluştu!";
-            }
+            } catch (e) { log.innerText = "Hata oluştu!"; }
         }
 
         window.donguyuBaslat = function() {
             if (donguAktif) return;
             donguAktif = true;
-            document.getElementById("dongu-btn").innerText = "DÖNGÜ ÇALIŞIYOR (HER 3 DAKİKADA BİR DEĞİŞECEK)";
+            document.getElementById("dongu-btn").innerText = "DÖNGÜ ÇALIŞIYOR";
             document.getElementById("dongu-btn").style.background = "#555";
-            document.getElementById("dongu-btn").style.color = "#fff";
-            
-            yeniTasiyiciSec(); // Hemen ilk kişiyi seç
-            // Her 3 dakikada bir (180.000 milisaniye) yeni kişiyi seç
-            timer = setInterval(yeniTasiyiciSec, 180000); 
-        };
+            yeniTasiyiciSec(); 
+            timer = setInterval(yeniTasiyiciSec, 60000); // HER 1 DAKİKADA BİR KONTROL EDER
+        }
     </script>
 </body>
 </html>

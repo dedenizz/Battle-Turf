@@ -156,24 +156,23 @@
         </div>
     </div>
 
-   <script type="module" src="app.js"></script>
-
-    <script type="module">
+   <script type="module">
         import { doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         
         let oyuncu = { isim: "", puan: 0, envanter: [], id: "" };
         const nadirlikPuanlari = { "yaygın": 2, "nadir": 5, "destansı": 15, "efsanevi": 50 };
         let butonKilitli = false; 
 
-        window.onload = function() {
-            // 🔥 EKSİK OLAN KISIM: Yükleme ekranını kapatıp giriş ekranını zorla açıyoruz!
-            setTimeout(() => {
-                const baglantiEkrani = document.getElementById("baslangic-ekrani") || document.getElementById("loading-ekrani") || document.getElementById("status-text");
-                if (baglantiEkrani) baglantiEkrani.style.display = "none";
-                
-                const girisEkrani = document.getElementById("giris-ekrani");
-                if (girisEkrani) girisEkrani.style.display = "flex";
-            }, 800);
+        // 🔥 DÜZELTME BURADA: window.onload engeline takılmadan ekranı anında açıyoruz!
+        setTimeout(() => {
+            const beklemeYazisi = document.getElementById("status-text");
+            if (beklemeYazisi) beklemeYazisi.style.display = "none";
+            
+            const baslangicEkrani = document.getElementById("baslangic-ekrani");
+            if (baslangicEkrani) baslangicEkrani.style.display = "none";
+
+            const girisEkrani = document.getElementById("giris-ekrani");
+            if (girisEkrani) girisEkrani.style.display = "flex";
 
             // --- CİHAZ MÜHRÜ KONTROLÜ ---
             const cihazMuhru = localStorage.getItem("cihazMuhru");
@@ -181,7 +180,7 @@
                 const isimKutusu = document.getElementById("oyuncu-adi");
                 if(isimKutusu) {
                     isimKutusu.value = cihazMuhru;
-                    isimKutusu.disabled = true; // İsmi değiştirmesini engeller!
+                    isimKutusu.disabled = true;
                 }
                 const hataMsj = document.getElementById("hata-msj");
                 if(hataMsj) {
@@ -190,7 +189,7 @@
                     hataMsj.style.color = "var(--vurgu-renk)";
                 }
             }
-        };
+        }, 500); // Sayfa açıldıktan yarım saniye sonra kesin tetiklenir
 
         function zamanDurumuKontrol() {
             const simdi = new Date();
@@ -218,7 +217,8 @@
         }
 
         window.oyunaBasla = async function() {
-            if (!window.db) return alert("Veritabanı bağlantısı kurulamadı. Lütfen sayfayı yenile.");
+            // Eğer Firebase yüklenmeye yetişemezse diye küçük bir güvenlik
+            if (!window.db) return alert("Sistem bağlantısı kuruluyor, lütfen 1-2 saniye bekleyip tekrar bas.");
             
             const isim = document.getElementById("oyuncu-adi").value.trim();
             if (!isim) { document.getElementById("hata-msj").style.display = "block"; return; }
@@ -242,7 +242,7 @@
                     oyuncu = { isim: isim, puan: 0, envanter: [], id: userRef.id };
                 }
 
-                localStorage.setItem("cihazMuhru", isim); // Cihaza kalıcı mühür bas
+                localStorage.setItem("cihazMuhru", isim); 
 
                 document.getElementById("giris-ekrani").style.display = "none";
                 document.getElementById("oyun-paneli").style.display = "flex";

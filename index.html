@@ -231,27 +231,36 @@
         function zamanDurumuKontrol() {
             const simdi = new Date();
             const toplamDakika = (simdi.getHours() * 60) + simdi.getMinutes();
+            
+            // Senin yazdığın özel ders programı (Dakika hesaplamaları yapıldı)
             const zamanCizelgesi = [
-                { bas: 540, bit: 580, tur: "ders", ad: "1. Ders" },
-                { bas: 580, bit: 590, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 590, bit: 630, tur: "ders", ad: "2. Ders" },
-                { bas: 630, bit: 640, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 640, bit: 680, tur: "ders", ad: "3. Ders" },
-                { bas: 680, bit: 690, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 690, bit: 730, tur: "ders", ad: "4. Ders" },
-                { bas: 730, bit: 770, tur: "teneffus", ad: "Öğle Arası" },
-                { bas: 770, bit: 810, tur: "ders", ad: "5. Ders" },
-                { bas: 810, bit: 820, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 820, bit: 860, tur: "ders", ad: "6. Ders" },
-                { bas: 860, bit: 870, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 870, bit: 910, tur: "ders", ad: "7. Ders" },
-                { bas: 910, bit: 920, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 920, bit: 960, tur: "ders", ad: "8. Ders" }
+                { bas: 495, bit: 570, tur: "ders", ad: "1. Ders" },             // 1: 08:15 - 09:30
+                { bas: 570, bit: 590, tur: "teneffus", ad: "1. Teneffüs (a)" }, // a: 09:30 - 09:50
+                { bas: 590, bit: 665, tur: "ders", ad: "2. Ders" },             // 2: 09:50 - 11:05
+                { bas: 665, bit: 675, tur: "teneffus", ad: "2. Teneffüs (b)" }, // b: 11:05 - 11:15
+                { bas: 675, bit: 715, tur: "ders", ad: "3. Ders" },             // 3: 11:15 - 11:55
+                { bas: 715, bit: 725, tur: "teneffus", ad: "3. Teneffüs (c)" }, // c: 11:55 - 12:05
+                { bas: 725, bit: 765, tur: "ders", ad: "4. Ders" },             // 4: 12:05 - 12:45
+                { bas: 765, bit: 775, tur: "teneffus", ad: "4. Teneffüs (d)" }, // d: 12:45 - 12:55
+                { bas: 775, bit: 815, tur: "ders", ad: "5. Ders" },             // 5: 12:55 - 13:35
+                { bas: 815, bit: 855, tur: "teneffus", ad: "5. Teneffüs (e)" }, // e: 13:35 - 14:15
+                { bas: 855, bit: 895, tur: "ders", ad: "6. Ders" },             // 6: 14:15 - 14:55
+                { bas: 895, bit: 900, tur: "teneffus", ad: "6. Teneffüs (f)" }, // f: 14:55 - 15:00
+                { bas: 900, bit: 940, tur: "ders", ad: "7. Ders" }              // 7: 15:00 - 15:40
             ];
-            let durum = { tur: "ders", ad: "Okul Dışı/Derste" }; 
-            for (let z of zamanCizelgesi) { if (toplamDakika >= z.bas && toplamDakika < z.bit) { durum = z; break; } }
+            
+            // Okul çıkışı sonrası (15:40'tan sonra) veya hafta sonları oyun kilitlenmesin diye varsayılan: teneffüs
+            let durum = { tur: "teneffus", ad: "Okul Dışı (Serbest)" }; 
+            
+            for (let z of zamanCizelgesi) { 
+                if (toplamDakika >= z.bas && toplamDakika < z.bit) { 
+                    durum = z; 
+                    break; 
+                } 
+            }
             return durum;
         }
+
 
         window.hesapOlustur = async function() {
             const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();

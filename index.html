@@ -149,7 +149,7 @@
         <div id="gacha-bekleme" class="gacha-kapsul">?</div>
         <div id="gacha-sonuc" class="gacha-sonuc">
             <h2 id="gacha-baslik" style="color: var(--vurgu-renk); letter-spacing: 5px; margin-bottom: 20px; font-size: 1.5rem;">VERİ ÇEKİLDİ!</h2>
-            <div class="yeni-resim" id="gacha-resim-cerceve"><img id="yeni-canavar-img" src="" alt="Canavar"></div>
+            <div class="yeni-resim" id="gacha-resim-cerceve"><img id="yeni-canavar-img" src="" alt="Canavar" onerror="this.style.display='none'"></div>
             <h1 id="yeni-canavar-isim" style="font-size: 2rem; margin-bottom: 5px;">---</h1>
             <p id="yeni-canavar-nadir" class="nadir-etiket" style="font-size: 1rem; margin-bottom: 20px;">---</p><br>
             <button class="btn" style="width: 200px; background: #fff;" onclick="gachaKapat()">KABUL ET</button>
@@ -219,12 +219,13 @@
             }
         }
 
+        let radarBaslatildi = false;
+
         // app.js'in veritabanını yüklemesini saniyede bir kontrol et
         let dbKontrol = setInterval(() => {
             if (window.db) {
                 clearInterval(dbKontrol);
                 canavarlariCek();
-                baslatRadar();
             }
         }, 500);
 
@@ -303,6 +304,7 @@
                 document.getElementById("giris-ekrani").style.display = "none";
                 document.getElementById("ana-uygulama").style.display = "flex";
                 arayuzuGuncelle();
+                if (!radarBaslatildi) { radarBaslatildi = true; baslatRadar(); }
             } catch (e) { 
                 console.error(e); 
                 if(durumMsj) durumMsj.innerText = "Bağlantı hatası! Güvenlik kurallarını kontrol et."; 
@@ -345,7 +347,7 @@
                     const kart = document.createElement("div"); 
                     kart.className = "canavar-kart"; 
                     kart.style.borderColor = canavar.renk || "#fff";
-                    kart.innerHTML = `<div class="canavar-resim"><img src="${canavar.resim}" alt="${canavar.isim}"></div>
+                    kart.innerHTML = `<div class="canavar-resim"><img src="${canavar.resim}" alt="${canavar.isim}" onerror="this.style.display='none'"></div>
                                       <div class="canavar-isim" style="color: ${canavar.renk || '#fff'};">${canavar.isim.replace(/_/g, " ")}</div>
                                       <div class="nadir-etiket" style="color: ${canavar.renk || '#fff'}; border: 1px solid ${canavar.renk || '#fff'}">${(canavar.nadirlik || "Yaygın").toUpperCase()}</div>`;
                     grid.appendChild(kart);
@@ -430,8 +432,20 @@
                 const gameData = gameSnap.data();
 
                 if (gameData && gameData.aktifKod === girilenKod && gameData.durum === "aktif") {
-                    // Kullanıldı olarak işaretle (Spam Engeli)
-                    await updateDoc(doc(window.db, "gameState", "carrier"), { durum: "kullanildi" });
+                    // Oyuncunun bu kodu daha önce kullanıp kullanmadığını kontrol et
+                    const playerRef = doc(window.db, "players", oyuncu.id);
+                    const playerSnap = await getDoc(playerRef);
+                    const playerData = playerSnap.data();
+                    const kullanilmisCodlar = playerData.kullanilmisCodlar || [];
+
+                    if (kullanilmisCodlar.includes(girilenKod)) {
+                        alert("Bu kodu zaten kullandın!");
+                        butonKilitli = false;
+                        return;
+                    }
+
+                    // Bu kodu oyuncunun kullanılmış kodlar listesine ekle
+                    await updateDoc(playerRef, { kullanilmisCodlar: arrayUnion(girilenKod) });
 
                     document.getElementById("gacha-ekrani").style.display = "flex";
                     document.getElementById("gacha-bekleme").style.display = "flex";
@@ -467,7 +481,7 @@
                     }, 2000);
 
                 } else { 
-                    alert("GEÇERSİZ VEYA ZATEN KULLANILMIŞ KOD!"); 
+                    alert("GEÇERSİZ KOD! Kodu kontrol et veya sinyal bekleniyor olabilir."); 
                     butonKilitli = false; 
                 }
             } catch (e) { 
@@ -553,6 +567,7 @@
                 document.getElementById("giris-ekrani").style.display = "none";
                 document.getElementById("ana-uygulama").style.display = "flex";
                 arayuzuGuncelle();
+                if (!radarBaslatildi) { radarBaslatildi = true; baslatRadar(); }
                 
             } catch (e) { 
                 console.error("Google Giriş Hatası:", e); 

@@ -508,6 +508,50 @@
         window.liderlikKapat = () => document.getElementById("liderlik-ekrani").style.display = "none";
         window.gachaKapat = () => document.getElementById("gacha-ekrani").style.display = "none";
         window.cikisYap = () => { location.reload(); };
+        window.googleGiris = async function() {
+            const durumMsj = document.getElementById("giris-durum");
+            
+            try {
+                if(durumMsj) durumMsj.innerText = "Google hesabı bekleniyor...";
+                
+                // 1. Google Popup'ını aç
+                const sonuc = await window.signInWithPopup(window.auth, window.provider);
+                const user = sonuc.user;
+                
+                // 2. Google ID'si ile senin sistemine uygun ID oluştur
+                const kullaniciAdi = user.displayName.toLowerCase();
+                const googleID = "g-" + user.uid; // Normal p- önekinden ayırmak için g- kullandık
+
+                if(durumMsj) durumMsj.innerText = "Kayıtlar Kontrol Ediliyor...";
+                const userRef = window.doc(window.db, "players", googleID);
+                const userSnap = await window.getDoc(userRef);
+
+                // 3. Veritabanı Kontrolü (Senin yazdığın mantığın aynısı)
+                if (userSnap.exists()) {
+                    // Eski oyuncuysa verilerini çek
+                    oyuncu = userSnap.data();
+                    oyuncu.id = userSnap.id;
+                    if(!oyuncu.envanter) oyuncu.envanter = [];
+                    if(!oyuncu.puan) oyuncu.puan = 0;
+                } else {
+                    // Yeni oyuncuysa veritabanına PIN yerine GOOGLE etiketiyle kaydet
+                    await window.setDoc(userRef, { isim: kullaniciAdi, pin: "GOOGLE_AUTH", puan: 0, envanter: [], seviye: 1 });
+                    oyuncu = { isim: kullaniciAdi, pin: "GOOGLE_AUTH", puan: 0, envanter: [], id: userRef.id };
+                }
+
+                // 4. Senin mühürleme ve ekran geçiş sistemin
+                localStorage.setItem("cihazMuhru", kullaniciAdi); 
+                localStorage.setItem("oyuncuID", oyuncu.id);
+
+                document.getElementById("giris-ekrani").style.display = "none";
+                document.getElementById("ana-uygulama").style.display = "flex";
+                arayuzuGuncelle();
+                
+            } catch (e) { 
+                console.error("Google Giriş Hatası:", e); 
+                if(durumMsj) durumMsj.innerText = "İşlem iptal edildi veya hata oluştu."; 
+            }
+        };
     </script>
 </body>
 </html>

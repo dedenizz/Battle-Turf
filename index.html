@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Game of Tame</title>
+    <title>Sürü - Ana Üs</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
@@ -93,6 +93,8 @@
             <input type="password" id="kullanici-pin" class="input-text" placeholder="4 HANELİ PİN" maxlength="4" pattern="\d*">
             <button class="btn" id="baglan-btn" onclick="hesapOlustur()" disabled>SİSTEM YÜKLENİYOR...</button>
             <p id="giris-durum" style="margin-top: 15px; color: var(--kirmizi-alarm); font-weight: bold;"></p>
+            
+            <button onclick="muhruSifirla()" style="margin-top: 10px; background: transparent; color: #555; border: 1px solid #555; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">Cihaz Mührünü Sıfırla</button>
         </div>
     </div>
 
@@ -149,7 +151,7 @@
         <div id="gacha-bekleme" class="gacha-kapsul">?</div>
         <div id="gacha-sonuc" class="gacha-sonuc">
             <h2 id="gacha-baslik" style="color: var(--vurgu-renk); letter-spacing: 5px; margin-bottom: 20px; font-size: 1.5rem;">VERİ ÇEKİLDİ!</h2>
-            <div class="yeni-resim" id="gacha-resim-cerceve"><img id="yeni-canavar-img" src="" alt="Canavar" onerror="this.style.display='none'"></div>
+            <div class="yeni-resim" id="gacha-resim-cerceve"><img id="yeni-canavar-img" src="" alt="Canavar"></div>
             <h1 id="yeni-canavar-isim" style="font-size: 2rem; margin-bottom: 5px;">---</h1>
             <p id="yeni-canavar-nadir" class="nadir-etiket" style="font-size: 1rem; margin-bottom: 20px;">---</p><br>
             <button class="btn" style="width: 200px; background: #fff;" onclick="gachaKapat()">KABUL ET</button>
@@ -219,49 +221,39 @@
             }
         }
 
-        let radarBaslatildi = false;
-
         // app.js'in veritabanını yüklemesini saniyede bir kontrol et
         let dbKontrol = setInterval(() => {
             if (window.db) {
                 clearInterval(dbKontrol);
                 canavarlariCek();
+                baslatRadar();
             }
         }, 500);
 
         function zamanDurumuKontrol() {
             const simdi = new Date();
             const toplamDakika = (simdi.getHours() * 60) + simdi.getMinutes();
-            
-            // Senin yazdığın özel ders programı (Dakika hesaplamaları yapıldı)
             const zamanCizelgesi = [
-                { bas: 495, bit: 570, tur: "ders", ad: "1. Ders" },             // 1: 08:15 - 09:30
-                { bas: 570, bit: 590, tur: "teneffus", ad: "1. Teneffüs (a)" }, // a: 09:30 - 09:50
-                { bas: 590, bit: 665, tur: "ders", ad: "2. Ders" },             // 2: 09:50 - 11:05
-                { bas: 665, bit: 675, tur: "teneffus", ad: "2. Teneffüs (b)" }, // b: 11:05 - 11:15
-                { bas: 675, bit: 715, tur: "ders", ad: "3. Ders" },             // 3: 11:15 - 11:55
-                { bas: 715, bit: 725, tur: "teneffus", ad: "3. Teneffüs (c)" }, // c: 11:55 - 12:05
-                { bas: 725, bit: 765, tur: "ders", ad: "4. Ders" },             // 4: 12:05 - 12:45
-                { bas: 765, bit: 775, tur: "teneffus", ad: "4. Teneffüs (d)" }, // d: 12:45 - 12:55
-                { bas: 775, bit: 815, tur: "ders", ad: "5. Ders" },             // 5: 12:55 - 13:35
-                { bas: 815, bit: 855, tur: "teneffus", ad: "5. Teneffüs (e)" }, // e: 13:35 - 14:15
-                { bas: 855, bit: 895, tur: "ders", ad: "6. Ders" },             // 6: 14:15 - 14:55
-                { bas: 895, bit: 900, tur: "teneffus", ad: "6. Teneffüs (f)" }, // f: 14:55 - 15:00
-                { bas: 900, bit: 940, tur: "ders", ad: "7. Ders" }              // 7: 15:00 - 15:40
+                { bas: 540, bit: 580, tur: "ders", ad: "1. Ders" },
+                { bas: 580, bit: 590, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 590, bit: 630, tur: "ders", ad: "2. Ders" },
+                { bas: 630, bit: 640, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 640, bit: 680, tur: "ders", ad: "3. Ders" },
+                { bas: 680, bit: 690, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 690, bit: 730, tur: "ders", ad: "4. Ders" },
+                { bas: 730, bit: 770, tur: "teneffus", ad: "Öğle Arası" },
+                { bas: 770, bit: 810, tur: "ders", ad: "5. Ders" },
+                { bas: 810, bit: 820, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 820, bit: 860, tur: "ders", ad: "6. Ders" },
+                { bas: 860, bit: 870, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 870, bit: 910, tur: "ders", ad: "7. Ders" },
+                { bas: 910, bit: 920, tur: "teneffus", ad: "Teneffüs" },
+                { bas: 920, bit: 960, tur: "ders", ad: "8. Ders" }
             ];
-            
-            // Okul çıkışı sonrası (15:40'tan sonra) veya hafta sonları oyun kilitlenmesin diye varsayılan: teneffüs
-            let durum = { tur: "teneffus", ad: "Okul Dışı (Serbest)" }; 
-            
-            for (let z of zamanCizelgesi) { 
-                if (toplamDakika >= z.bas && toplamDakika < z.bit) { 
-                    durum = z; 
-                    break; 
-                } 
-            }
+            let durum = { tur: "ders", ad: "Okul Dışı/Derste" }; 
+            for (let z of zamanCizelgesi) { if (toplamDakika >= z.bas && toplamDakika < z.bit) { durum = z; break; } }
             return durum;
         }
-
 
         window.hesapOlustur = async function() {
             const kullaniciAdi = document.getElementById("kullanici-adi").value.trim().toLowerCase();
@@ -304,7 +296,6 @@
                 document.getElementById("giris-ekrani").style.display = "none";
                 document.getElementById("ana-uygulama").style.display = "flex";
                 arayuzuGuncelle();
-                if (!radarBaslatildi) { radarBaslatildi = true; baslatRadar(); }
             } catch (e) { 
                 console.error(e); 
                 if(durumMsj) durumMsj.innerText = "Bağlantı hatası! Güvenlik kurallarını kontrol et."; 
@@ -347,7 +338,7 @@
                     const kart = document.createElement("div"); 
                     kart.className = "canavar-kart"; 
                     kart.style.borderColor = canavar.renk || "#fff";
-                    kart.innerHTML = `<div class="canavar-resim"><img src="${canavar.resim}" alt="${canavar.isim}" onerror="this.style.display='none'"></div>
+                    kart.innerHTML = `<div class="canavar-resim"><img src="${canavar.resim}" alt="${canavar.isim}"></div>
                                       <div class="canavar-isim" style="color: ${canavar.renk || '#fff'};">${canavar.isim.replace(/_/g, " ")}</div>
                                       <div class="nadir-etiket" style="color: ${canavar.renk || '#fff'}; border: 1px solid ${canavar.renk || '#fff'}">${(canavar.nadirlik || "Yaygın").toUpperCase()}</div>`;
                     grid.appendChild(kart);
@@ -373,10 +364,6 @@
                 return; 
             }
 
-            // ÇÖZÜM 1: Ders değilse (teneffüs veya serbest zamansa), kutuları HER ZAMAN AÇIK TUT:
-            if(kodKutusu) kodKutusu.disabled = false; 
-            if(buton) buton.disabled = false;
-
             if (docSnapData && docSnapData.durum === "aktif") {
                 if (docSnapData.hedefOyuncuID === benimID) {
                     if(radar) radar.style.display = "none"; 
@@ -387,114 +374,28 @@
                     if(radar) { radar.style.display = "block"; radar.innerText = `⚠ HEDEF TESPİT EDİLDİ: ${docSnapData.hedefIsim.toUpperCase()} ⚠`; radar.style.color = "var(--kirmizi-alarm)"; radar.style.animation = "yanipSonme 2s infinite"; }
                     if(tasiyiciModu) tasiyiciModu.style.display = "none"; 
                     if(avciModu) avciModu.style.display = "block";
+                    if(kodKutusu) kodKutusu.disabled = false; 
+                    if(buton) buton.disabled = false;
                 }
             } else {
                 if(radar) { 
                     radar.style.display = "block"; 
-                    radar.innerText = "SİNYAL YOK, AMA KOD GİRİŞİ AÇIK..."; 
-                    radar.style.color = "var(--vurgu-renk)"; 
-                    radar.style.animation = "yanipSonme 2s infinite";
+                    if (durum.tur === "teneffus") {
+                        radar.innerText = "TENEFFÜS VAKTİ! SİNYAL BEKLENİYOR..."; 
+                        radar.style.color = "var(--vurgu-renk)"; 
+                        radar.style.animation = "yanipSonme 2s infinite";
+                    } else {
+                        radar.innerText = "SİSTEM BEKLEMEDE VEYA KAPALI"; 
+                        radar.style.color = "var(--metin-soluk)"; 
+                        radar.style.animation = "none";
+                    }
                 }
                 if(tasiyiciModu) tasiyiciModu.style.display = "none"; 
                 if(avciModu) avciModu.style.display = "block";
+                if(kodKutusu) kodKutusu.disabled = true; 
+                if(buton) buton.disabled = true;
             }
         }
-
-        function baslatRadar() {
-            const tasiyiciRef = doc(window.db, "gameState", "carrier");
-            onSnapshot(tasiyiciRef, (docSnap) => {
-                sonDocSnapData = docSnap.exists() ? docSnap.data() : null;
-                radarArayuzunuGuncelle(sonDocSnapData);
-            });
-            setInterval(() => radarArayuzunuGuncelle(sonDocSnapData), 10000);
-        }
-
-        window.koduCozVeCevir = async function() {
-            if (butonKilitli) return; 
-            const girilenKod = document.getElementById("hedef-kod").value.trim().toUpperCase(); 
-            if (girilenKod.length < 4) return alert("Geçersiz kod! En az 4 hane girmelisin.");
-
-            const durum = zamanDurumuKontrol();
-            if (durum.tur === "ders") {
-                alert(`Sinyal Kesildi! Şu an ${durum.ad} vaktindeyiz. Avlanmak için teneffüsü beklemelisin.`);
-                return;
-            }
-
-            butonKilitli = true; 
-            try {
-                const gameSnap = await getDoc(doc(window.db, "gameState", "carrier"));
-                const gameData = gameSnap.exists() ? gameSnap.data() : null;
-
-                // ÇÖZÜM 2: Oyunu test edebilmek için 9999 master kodu eklendi
-                const dogruKodMu = (girilenKod === "9999") || (gameData && gameData.aktifKod === girilenKod && gameData.durum === "aktif");
-
-                if (dogruKodMu) {
-                    const playerRef = doc(window.db, "players", oyuncu.id);
-                    const playerSnap = await getDoc(playerRef);
-                    const playerData = playerSnap.data() || {};
-                    const kullanilmisCodlar = playerData.kullanilmisCodlar || [];
-
-                    // Test kodu (9999) sınırsız kullanılabilir, diğerleri 1 kere
-                    if (girilenKod !== "9999" && kullanilmisCodlar.includes(girilenKod)) {
-                        alert("Bu taşıyıcı kodunu zaten kullandın!");
-                        butonKilitli = false;
-                        return;
-                    }
-
-                    if (girilenKod !== "9999") {
-                        await setDoc(playerRef, { kullanilmisCodlar: arrayUnion(girilenKod) }, { merge: true });
-                    }
-
-                    document.getElementById("gacha-ekrani").style.display = "flex";
-                    document.getElementById("gacha-bekleme").style.display = "flex";
-                    document.getElementById("gacha-sonuc").style.display = "none";
-
-                    let havuz = canavarHavuzu.yaygin;
-                    const sans = Math.random() * 100; 
-                    if (sans <= 0.1 && canavarHavuzu.mitik.length > 0) havuz = canavarHavuzu.mitik;            
-                    else if (sans <= 5 && canavarHavuzu.efsanevi.length > 0) havuz = canavarHavuzu.efsanevi;      
-                    else if (sans <= 20 && canavarHavuzu.destansi.length > 0) havuz = canavarHavuzu.destansi;    
-                    else if (sans <= 50 && canavarHavuzu.nadir.length > 0) havuz = canavarHavuzu.nadir;        
-                    else if (canavarHavuzu.yaygin.length === 0) havuz = Object.values(canavarHavuzu).flat();                      
-
-                    if (!havuz || havuz.length === 0) {
-                        alert("Veritabanında hiç canavar bulunamadı! Lütfen önce Firestore'a canavar ekle.");
-                        document.getElementById("gacha-ekrani").style.display = "none";
-                        butonKilitli = false;
-                        return;
-                    }
-
-                    const secilen = havuz[Math.floor(Math.random() * havuz.length)];
-
-                    oyuncu.envanter.push(secilen);
-                    await setDoc(doc(window.db, "players", oyuncu.id), { envanter: oyuncu.envanter }, { merge: true });
-
-                    setTimeout(() => {
-                        document.getElementById("gacha-bekleme").style.display = "none";
-                        document.getElementById("gacha-sonuc").style.display = "block";
-                        document.getElementById("yeni-canavar-img").src = secilen.resim || "";
-                        document.getElementById("yeni-canavar-isim").innerText = (secilen.isim || "Bilinmeyen").replace(/_/g, " ");
-                        document.getElementById("yeni-canavar-nadir").innerText = (secilen.nadirlik || "YAYGIN").toUpperCase();
-                        
-                        const renk = secilen.renk || "#00ffcc";
-                        document.getElementById("gacha-resim-cerceve").style.borderColor = renk;
-                        document.getElementById("yeni-canavar-nadir").style.background = renk;
-                        document.getElementById("hedef-kod").value = "";
-                        
-                        arayuzuGuncelle();
-                        butonKilitli = false; 
-                    }, 2000);
-
-                } else { 
-                    alert("GEÇERSİZ KOD! (Test yapmak istersen 9999 kodunu kullanabilirsin)"); 
-                    butonKilitli = false; 
-                }
-            } catch (e) { 
-                console.error("Kod çözme hatası:", e); 
-                alert("İşlem sırasında bir hata oluştu."); 
-                butonKilitli = false; 
-            }
-        };
 
         function baslatRadar() {
             const tasiyiciRef = doc(window.db, "gameState", "carrier");
@@ -522,20 +423,8 @@
                 const gameData = gameSnap.data();
 
                 if (gameData && gameData.aktifKod === girilenKod && gameData.durum === "aktif") {
-                    // Oyuncunun bu kodu daha önce kullanıp kullanmadığını kontrol et
-                    const playerRef = doc(window.db, "players", oyuncu.id);
-                    const playerSnap = await getDoc(playerRef);
-                    const playerData = playerSnap.data();
-                    const kullanilmisCodlar = playerData.kullanilmisCodlar || [];
-
-                    if (kullanilmisCodlar.includes(girilenKod)) {
-                        alert("Bu kodu zaten kullandın!");
-                        butonKilitli = false;
-                        return;
-                    }
-
-                    // Bu kodu oyuncunun kullanılmış kodlar listesine ekle
-                    await updateDoc(playerRef, { kullanilmisCodlar: arrayUnion(girilenKod) });
+                    // Kullanıldı olarak işaretle (Spam Engeli)
+                    await updateDoc(doc(window.db, "gameState", "carrier"), { durum: "kullanildi" });
 
                     document.getElementById("gacha-ekrani").style.display = "flex";
                     document.getElementById("gacha-bekleme").style.display = "flex";
@@ -571,7 +460,7 @@
                     }, 2000);
 
                 } else { 
-                    alert("GEÇERSİZ KOD! Kodu kontrol et veya sinyal bekleniyor olabilir."); 
+                    alert("GEÇERSİZ VEYA ZATEN KULLANILMIŞ KOD!"); 
                     butonKilitli = false; 
                 }
             } catch (e) { 
@@ -619,51 +508,6 @@
         window.liderlikKapat = () => document.getElementById("liderlik-ekrani").style.display = "none";
         window.gachaKapat = () => document.getElementById("gacha-ekrani").style.display = "none";
         window.cikisYap = () => { location.reload(); };
-        window.googleGiris = async function() {
-            const durumMsj = document.getElementById("giris-durum");
-            
-            try {
-                if(durumMsj) durumMsj.innerText = "Google hesabı bekleniyor...";
-                
-                // 1. Google Popup'ını aç
-                const sonuc = await window.signInWithPopup(window.auth, window.provider);
-                const user = sonuc.user;
-                
-                // 2. Google ID'si ile senin sistemine uygun ID oluştur
-                const kullaniciAdi = user.displayName.toLowerCase();
-                const googleID = "g-" + user.uid; // Normal p- önekinden ayırmak için g- kullandık
-
-                if(durumMsj) durumMsj.innerText = "Kayıtlar Kontrol Ediliyor...";
-                const userRef = window.doc(window.db, "players", googleID);
-                const userSnap = await window.getDoc(userRef);
-
-                // 3. Veritabanı Kontrolü (Senin yazdığın mantığın aynısı)
-                if (userSnap.exists()) {
-                    // Eski oyuncuysa verilerini çek
-                    oyuncu = userSnap.data();
-                    oyuncu.id = userSnap.id;
-                    if(!oyuncu.envanter) oyuncu.envanter = [];
-                    if(!oyuncu.puan) oyuncu.puan = 0;
-                } else {
-                    // Yeni oyuncuysa veritabanına PIN yerine GOOGLE etiketiyle kaydet
-                    await window.setDoc(userRef, { isim: kullaniciAdi, pin: "GOOGLE_AUTH", puan: 0, envanter: [], seviye: 1 });
-                    oyuncu = { isim: kullaniciAdi, pin: "GOOGLE_AUTH", puan: 0, envanter: [], id: userRef.id };
-                }
-
-                // 4. Senin mühürleme ve ekran geçiş sistemin
-                localStorage.setItem("cihazMuhru", kullaniciAdi); 
-                localStorage.setItem("oyuncuID", oyuncu.id);
-
-                document.getElementById("giris-ekrani").style.display = "none";
-                document.getElementById("ana-uygulama").style.display = "flex";
-                arayuzuGuncelle();
-                if (!radarBaslatildi) { radarBaslatildi = true; baslatRadar(); }
-                
-            } catch (e) { 
-                console.error("Google Giriş Hatası:", e); 
-                if(durumMsj) durumMsj.innerText = "İşlem iptal edildi veya hata oluştu."; 
-            }
-        };
     </script>
 </body>
 </html>

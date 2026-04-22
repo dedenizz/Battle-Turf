@@ -22,11 +22,10 @@ window.auth = auth;
 window.provider = provider;
 window.signInWithPopup = signInWithPopup;
 window.onAuthStateChanged = onAuthStateChanged;
-window.signOut = signOut;
-window.collection = collection;
-window.getDocs = getDocs;
+
+// EKSİK OLAN VE EKLENEN KISIM BURASI:
+window.doc = doc;
 window.getDoc = getDoc;
 window.setDoc = setDoc;
-window.doc = doc;
-window.addDoc = addDoc;
-window.updateDoc = updateDoc;
+window.getDocs = getDocs;
+window.collection = collection;

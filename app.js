@@ -17,13 +17,15 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 // Fonksiyonları index.html'den erişilebilir yapıyoruz
-window.db = db;
+// Firebase Auth Fonksiyonları
 window.auth = auth;
 window.provider = provider;
 window.signInWithPopup = signInWithPopup;
 window.onAuthStateChanged = onAuthStateChanged;
+window.signOut = signOut; // ÇIKIŞ YAPMAK İÇİN BU ŞART!
 
-// EKSİK OLAN VE EKLENEN KISIM BURASI:
+// Firestore Veritabanı Fonksiyonları
+window.db = db;
 window.doc = doc;
 window.getDoc = getDoc;
 window.setDoc = setDoc;

@@ -2,114 +2,185 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Sürü - YÖNETİCİ PANELİ</title>
+    <title>SÜRÜ — YÖNETİCİ PANELİ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #050505; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 50px; }
-        .kutu { border: 2px solid #00ffcc; padding: 20px; display: inline-block; border-radius: 10px; margin-top: 20px;}
-        button { background: #00ffcc; color: #000; padding: 15px 30px; font-weight: bold; cursor: pointer; border: none; font-size: 1.2rem; margin-top: 20px;}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #050508; color: #00e5ff; font-family: 'Roboto Mono', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 30px 20px; }
+        h1 { font-size: 1.5rem; letter-spacing: 4px; color: #fff; margin-bottom: 6px; }
+        .sub { color: #444; font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 30px; }
+        .panel { border: 1px solid #1a1d2e; background: #0d0f1a; padding: 24px 30px; border-radius: 6px; min-width: 320px; max-width: 480px; width: 100%; margin-bottom: 20px; }
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.85rem; }
+        .row label { color: #444; letter-spacing: 1px; }
+        .row .val { color: #fff; font-weight: 700; }
+        .big-code { font-size: 3rem; font-weight: 700; text-align: center; color: #fff; background: #ff2d55; padding: 12px 20px; border-radius: 6px; letter-spacing: 12px; margin: 16px 0; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .btn { background: #00e5ff; color: #000; padding: 14px 28px; font-weight: 700; cursor: pointer; border: none; font-size: 1rem; letter-spacing: 2px; border-radius: 4px; margin-top: 10px; width: 100%; transition: 0.2s; font-family: 'Roboto Mono', monospace; }
+        .btn:hover:not(:disabled) { background: #fff; }
+        .btn:disabled { background: #1a1d2e; color: #444; cursor: not-allowed; }
+        .log { color: #444; font-size: 0.78rem; letter-spacing: 1px; margin-top: 16px; }
+        .status-aktif { color: #00e5ff; }
+        .status-kapali { color: #ff2d55; }
+        .zaman-bar { margin-top: 20px; }
+        .zaman-satir { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 3px; margin-bottom: 4px; font-size: 0.75rem; border-left: 3px solid #1a1d2e; }
+        .zaman-satir.aktif { border-color: #00e5ff; background: rgba(0,229,255,0.05); color: #00e5ff; }
+        .zaman-satir.ders-slot { color: #555; }
+        .zaman-satir.teneffus-slot { color: #888; }
     </style>
 </head>
 <body>
 
-    <h1>SİSTEM YÖNETİCİSİ (GAME MASTER)</h1>
-    <p>Bu ekranı kapatma. Oyunun otonom çalışmasını sağlar.</p>
-    
-    <div class="kutu">
-        <h3>DURUM: <span id="sistem-durum">BEKLENİYOR</span></h3>
-        <h3>ŞU ANKİ TAŞIYICI: <span id="aktif-tasiyici" style="color: #ff3366;">YOK</span></h3>
-        <h1 id="aktif-kod" style="font-size: 4rem; margin: 10px;">----</h1>
-    </div><br>
+<h1>SÜRÜ YÖNETİCİSİ</h1>
+<div class="sub">GAME MASTER PANEL — Bu ekranı kapatma!</div>
 
-    <button id="dongu-btn" onclick="donguyuBaslat()">OTOMATİK DÖNGÜYÜ BAŞLAT</button>
-    <p id="durum-log"></p>
+<div class="panel">
+    <div class="row"><label>DURUM</label><span class="val" id="sistem-durum">BEKLENIYOR</span></div>
+    <div class="row"><label>ŞU ANKİ TAŞIYICI</label><span class="val" id="aktif-tasiyici" style="color:#ff2d55">YOK</span></div>
+    <div class="row"><label>ŞU ANKİ ZAMAN</label><span class="val" id="simdi-zaman">--:--</span></div>
+    <div class="row"><label>DÖNEM</label><span class="val" id="simdi-donem">---</span></div>
+    <div class="big-code" id="aktif-kod">----</div>
+    <button class="btn" id="dongu-btn" onclick="donguyuBaslat()">OTOMATİK DÖNGÜYÜ BAŞLAT</button>
+    <p class="log" id="durum-log">Başlatmak için butona bas.</p>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+<div class="panel zaman-bar">
+    <div style="color:#444; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px;">DERS PROGRAMI (HAZ FEN A)</div>
+    <div id="zaman-listesi"></div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
-            authDomain: "gameoftame-7c63f.firebaseapp.com",
-            projectId: "gameoftame-7c63f",
-            storageBucket: "gameoftame-7c63f.firebasestorage.app",
-            messagingSenderId: "829948418870",
-            appId: "1:829948418870:web:02373ec1d4b170049fb197"
-        };
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        let donguAktif = false; let timer;
+    const firebaseConfig = {
+        apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
+        authDomain: "gameoftame-7c63f.firebaseapp.com",
+        projectId: "gameoftame-7c63f",
+        storageBucket: "gameoftame-7c63f.firebasestorage.app",
+        messagingSenderId: "829948418870",
+        appId: "1:829948418870:web:02373ec1d4b170049fb197"
+    };
 
-        function zamanDurumuKontrol() {
-            const simdi = new Date();
-            const toplamDakika = (simdi.getHours() * 60) + simdi.getMinutes();
-            const zamanCizelgesi = [
-                { bas: 540, bit: 580, tur: "ders", ad: "1. Ders" },
-                { bas: 580, bit: 590, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 590, bit: 630, tur: "ders", ad: "2. Ders" },
-                { bas: 630, bit: 640, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 640, bit: 680, tur: "ders", ad: "3. Ders" },
-                { bas: 680, bit: 690, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 690, bit: 730, tur: "ders", ad: "4. Ders" },
-                { bas: 730, bit: 770, tur: "teneffus", ad: "Öğle Arası" },
-                { bas: 770, bit: 810, tur: "ders", ad: "5. Ders" },
-                { bas: 810, bit: 820, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 820, bit: 860, tur: "ders", ad: "6. Ders" },
-                { bas: 860, bit: 870, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 870, bit: 910, tur: "ders", ad: "7. Ders" },
-                { bas: 910, bit: 920, tur: "teneffus", ad: "Teneffüs" },
-                { bas: 920, bit: 960, tur: "ders", ad: "8. Ders" }
-            ];
-            let durum = { tur: "ders", ad: "Okul Dışı/Derste" };
-            for (let z of zamanCizelgesi) { if (toplamDakika >= z.bas && toplamDakika < z.bit) { durum = z; break; } }
-            return durum;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let donguAktif = false;
+    let timer;
+
+    // ─── SCHEDULE matching the school image exactly ───
+    const zamanCizelgesi = [
+        { bas: 495, bit: 570, tur: "ders", ad: "1-2. Ders", saat: "8:15–9:30" },
+        { bas: 570, bit: 590, tur: "teneffus", ad: "Teneffüs", saat: "9:30–9:50" },
+        { bas: 590, bit: 665, tur: "ders", ad: "3-4. Ders", saat: "9:50–11:05" },
+        { bas: 665, bit: 675, tur: "teneffus", ad: "Teneffüs", saat: "11:05–11:15" },
+        { bas: 675, bit: 715, tur: "ders", ad: "5. Ders", saat: "11:15–11:55" },
+        { bas: 715, bit: 725, tur: "teneffus", ad: "Kısa Ara", saat: "11:55–12:05" },
+        { bas: 725, bit: 765, tur: "ders", ad: "6. Ders", saat: "12:05–12:45" },
+        { bas: 765, bit: 775, tur: "teneffus", ad: "Teneffüs", saat: "12:45–12:55" },
+        { bas: 775, bit: 815, tur: "ders", ad: "7. Ders", saat: "12:55–13:35" },
+        { bas: 815, bit: 855, tur: "teneffus", ad: "Öğle Arası", saat: "13:35–14:15" },
+        { bas: 855, bit: 895, tur: "ders", ad: "8. Ders", saat: "14:15–14:55" },
+        { bas: 895, bit: 900, tur: "teneffus", ad: "Kısa Ara", saat: "14:55–15:00" },
+        { bas: 900, bit: 940, tur: "ders", ad: "9. Ders", saat: "15:00–15:40" },
+    ];
+
+    // Render schedule
+    function renderZaman() {
+        const liste = document.getElementById("zaman-listesi");
+        const simdi = new Date();
+        const toplamDakika = simdi.getHours() * 60 + simdi.getMinutes();
+        liste.innerHTML = "";
+        zamanCizelgesi.forEach(z => {
+            const aktif = toplamDakika >= z.bas && toplamDakika < z.bit;
+            const sinif = aktif ? "aktif" : z.tur === "ders" ? "ders-slot" : "teneffus-slot";
+            liste.innerHTML += `
+                <div class="zaman-satir ${sinif}">
+                    <span>${z.saat} — ${z.ad}</span>
+                    <span>${z.tur === "ders" ? "🔒" : "📶"}${aktif ? " ◀" : ""}</span>
+                </div>
+            `;
+        });
+    }
+
+    function zamanDurumuKontrol() {
+        const simdi = new Date();
+        const toplamDakika = simdi.getHours() * 60 + simdi.getMinutes();
+        for (let z of zamanCizelgesi) {
+            if (toplamDakika >= z.bas && toplamDakika < z.bit) return z;
+        }
+        return { tur: "teneffus", ad: "Okul Dışı Saat" };
+    }
+
+    function saatiGuncelle() {
+        const simdi = new Date();
+        const h = String(simdi.getHours()).padStart(2, '0');
+        const m = String(simdi.getMinutes()).padStart(2, '0');
+        const s = String(simdi.getSeconds()).padStart(2, '0');
+        document.getElementById("simdi-zaman").innerText = `${h}:${m}:${s}`;
+        const d = zamanDurumuKontrol();
+        const donemEl = document.getElementById("simdi-donem");
+        donemEl.innerText = d.ad;
+        donemEl.className = d.tur === "ders" ? "val status-kapali" : "val status-aktif";
+    }
+
+    setInterval(saatiGuncelle, 1000);
+    saatiGuncelle();
+    setInterval(renderZaman, 5000);
+    renderZaman();
+
+    window.yeniTasiyiciSec = async function() {
+        const log = document.getElementById("durum-log");
+        const durum = zamanDurumuKontrol();
+
+        saatiGuncelle();
+        renderZaman();
+
+        if (durum.tur === "ders") {
+            document.getElementById("sistem-durum").innerHTML = `<span class="status-kapali">KAPALI (${durum.ad})</span>`;
+            document.getElementById("aktif-tasiyici").innerText = "YOK";
+            document.getElementById("aktif-kod").innerText = "----";
+            document.getElementById("aktif-kod").style.background = "#1a1d2e";
+            await setDoc(doc(db, "gameState", "carrier"), {
+                durum: "pasif", hedefIsim: "DERS VAKTİ",
+                aktifKod: "----", zamanDamgasi: Date.now()
+            });
+            log.innerText = `[${new Date().toLocaleTimeString()}] Ders vakti — sistem kapalı.`;
+            return;
         }
 
-        window.yeniTasiyiciSec = async function() {
-            const log = document.getElementById("durum-log");
-            const durum = zamanDurumuKontrol();
+        document.getElementById("sistem-durum").innerHTML = `<span class="status-aktif">AKTİF (${durum.ad})</span>`;
+        document.getElementById("aktif-kod").style.background = "#ff2d55";
 
-            // DERSTEYSE SİSTEMİ KAPATIR VE KİMSEYE KOD VERMEZ!
-            if (durum.tur === "ders") {
-                document.getElementById("sistem-durum").innerText = `KAPALI (${durum.ad})`;
-                document.getElementById("sistem-durum").style.color = "#ff3366";
-                document.getElementById("aktif-tasiyici").innerText = "YOK";
-                document.getElementById("aktif-kod").innerText = "----";
-                
-                await setDoc(doc(db, "gameState", "carrier"), { durum: "pasif", hedefIsim: "DERS VAKTİ", aktifKod: "----", zamanDamgasi: Date.now() });
-                log.innerText = `Şu an ${durum.ad}. Teneffüs bekleniyor...`;
-                return;
+        try {
+            const playersSnap = await getDocs(collection(db, "players"));
+            let oyuncular = [];
+            playersSnap.forEach(d => oyuncular.push({ id: d.id, isim: d.data().isim }));
+
+            if (oyuncular.length > 0) {
+                const secilen = oyuncular[Math.floor(Math.random() * oyuncular.length)];
+                const yeniKod = Math.floor(1000 + Math.random() * 9000).toString();
+
+                await setDoc(doc(db, "gameState", "carrier"), {
+                    hedefOyuncuID: secilen.id, hedefIsim: secilen.isim,
+                    aktifKod: yeniKod, durum: "aktif", zamanDamgasi: Date.now()
+                });
+
+                document.getElementById("aktif-tasiyici").innerText = secilen.isim.toUpperCase();
+                document.getElementById("aktif-kod").innerText = yeniKod;
+                log.innerText = `[${new Date().toLocaleTimeString()}] Yeni taşıyıcı: ${secilen.isim}`;
+            } else {
+                log.innerText = `[${new Date().toLocaleTimeString()}] Hiç oyuncu yok!`;
             }
+        } catch (e) { log.innerText = "Hata: " + e.message; }
+    };
 
-            document.getElementById("sistem-durum").innerText = "AKTİF (TENEFFÜS)";
-            document.getElementById("sistem-durum").style.color = "#00ffcc";
-
-            try {
-                const playersSnap = await getDocs(collection(db, "players"));
-                let oyuncular = [];
-                playersSnap.forEach(doc => oyuncular.push({ id: doc.id, isim: doc.data().isim }));
-
-                if (oyuncular.length > 0) {
-                    const secilen = oyuncular[Math.floor(Math.random() * oyuncular.length)];
-                    const yeniKod = Math.floor(1000 + Math.random() * 9000).toString();
-
-                    await setDoc(doc(db, "gameState", "carrier"), { hedefOyuncuID: secilen.id, hedefIsim: secilen.isim, aktifKod: yeniKod, durum: "aktif", zamanDamgasi: Date.now() });
-
-                    document.getElementById("aktif-tasiyici").innerText = secilen.isim.toUpperCase();
-                    document.getElementById("aktif-kod").innerText = yeniKod;
-                    log.innerText = "Yeni taşıyıcı atandı!";
-                }
-            } catch (e) { log.innerText = "Hata oluştu!"; }
-        }
-
-        window.donguyuBaslat = function() {
-            if (donguAktif) return;
-            donguAktif = true;
-            document.getElementById("dongu-btn").innerText = "DÖNGÜ ÇALIŞIYOR";
-            document.getElementById("dongu-btn").style.background = "#555";
-            yeniTasiyiciSec(); 
-            timer = setInterval(yeniTasiyiciSec, 60000); // HER 1 DAKİKADA BİR KONTROL EDER
-        }
-    </script>
+    window.donguyuBaslat = function() {
+        if (donguAktif) return;
+        donguAktif = true;
+        const btn = document.getElementById("dongu-btn");
+        btn.innerText = "DÖNGÜ ÇALIŞIYOR";
+        btn.disabled = true;
+        yeniTasiyiciSec();
+        timer = setInterval(yeniTasiyiciSec, 60000);
+    };
+</script>
 </body>
 </html>

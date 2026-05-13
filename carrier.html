@@ -112,14 +112,22 @@
             box-shadow:none; animation:none; color:#555;
         }
 
-        .btn-baslat {
-            width:100%; padding:16px; background:var(--vurgu-renk); color:#000;
-            border:none; border-radius:12px; font-size:1.1rem; font-weight:900;
-            letter-spacing:2px; text-transform:uppercase; cursor:pointer;
-            transition:.2s; font-family:'Montserrat',sans-serif;
+        /* ── AUTO STATUS BOX ── */
+        .otomasyon-durum {
+            width:100%; padding:14px 18px; border-radius:12px;
+            font-size:.85rem; font-weight:700; letter-spacing:1px;
+            text-align:center; border:1px solid;
         }
-        .btn-baslat:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,255,204,.3); }
-        .btn-baslat:disabled { background:#333; color:#555; cursor:not-allowed; }
+        .otomasyon-aktif {
+            color:var(--vurgu-renk);
+            background:rgba(0,255,204,.06);
+            border-color:rgba(0,255,204,.25);
+            animation:otoPulse 2s infinite;
+        }
+        @keyframes otoPulse {
+            0%,100%{box-shadow:0 0 8px rgba(0,255,204,.15);}
+            50%    {box-shadow:0 0 18px rgba(0,255,204,.35);}
+        }
 
         #durum-log {
             font-family:'Roboto Mono',monospace; font-size:.78rem;
@@ -188,10 +196,14 @@
         <p id="durum-log"></p>
     </div>
 
-    <!-- Start button -->
+    <!-- Automation status (replaces the manual button) -->
     <div class="kart" style="text-align:center">
-        <button class="btn-baslat" id="dongu-btn" onclick="donguyuBaslat()">OTOMATİK DÖNGÜYÜ BAŞLAT</button>
-        <p style="color:var(--metin-soluk); font-size:.75rem; margin-top:10px;">Her dakika otomatik olarak yeni taşıyıcı seçilir.</p>
+        <div class="otomasyon-durum otomasyon-aktif" id="otomasyon-kutu">
+            ⚡ OTOMATİK DÖNGÜ AKTİF
+        </div>
+        <p style="color:var(--metin-soluk); font-size:.75rem; margin-top:10px;">
+            Teneffüste otomatik taşıyıcı seçilir · Derste sistem kapanır · Her 30 saniyede kontrol edilir
+        </p>
     </div>
 
     <!-- Schedule -->
@@ -206,9 +218,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    /* ── CHANGE THIS PASSWORD ── */
-    const DOGRU_SIFRE = "suruyonetici2025";
-    /* ─────────────────────────── */
+    /* ── PASSWORD — base64 encoded, decoded at runtime ── */
+    const DOGRU_SIFRE = atob("NjdtcnNlcmVu");
 
     const firebaseConfig = {
         apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
@@ -222,8 +233,9 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    let donguAktif = false;
+    let donguAktif  = false;
     let donguTimer;
+    let sonDurum    = null; // tracks last known period type to detect transitions
 
     /* ── SCHEDULE ── */
     const ZAMAN = [
@@ -286,8 +298,10 @@
             document.getElementById("panel-ekrani").style.display = "block";
             saatiGuncelle();
             programiGuncelle();
-            setInterval(saatiGuncelle,  1000);
+            setInterval(saatiGuncelle, 1000);
             setInterval(programiGuncelle, 10000);
+            // ── AUTO-START the loop immediately after login ──
+            donguyuBaslat();
         } else {
             const el = document.getElementById("sifre-hata");
             el.innerText = "⚠ Hatalı şifre!";
@@ -315,6 +329,7 @@
             return;
         }
 
+        // It's teneffüs — pick a new carrier
         document.getElementById("sistem-durum").innerText = `AKTİF — ${zaman.ad}`;
         document.getElementById("sistem-durum").className = "bilgi-deger durum-aktif";
 
@@ -345,15 +360,38 @@
         }
     };
 
-    window.donguyuBaslat = function() {
+    /* ── SMART LOOP ──
+       Runs every 30 seconds.
+       Detects ders ↔ teneffüs TRANSITIONS and reacts immediately:
+         • teneffüs starts → pick new carrier right away
+         • ders starts     → shut down carrier right away
+    */
+    async function akillıDonguAdimi() {
+        const zaman = zamanDurumuKontrol();
+        const yeniDurum = zaman.tur;
+
+        if (yeniDurum !== sonDurum) {
+            // Period changed — act immediately
+            sonDurum = yeniDurum;
+            await yeniTasiyiciSec();
+        } else {
+            // Same period — just keep UI clocks in sync, no Firebase write needed
+            saatiGuncelle();
+            programiGuncelle();
+        }
+    }
+
+    function donguyuBaslat() {
         if (donguAktif) return;
         donguAktif = true;
-        const btn = document.getElementById("dongu-btn");
-        btn.innerText  = "DÖNGÜ ÇALIŞIYOR ✓";
-        btn.disabled   = true;
-        yeniTasiyiciSec();
-        donguTimer = setInterval(yeniTasiyiciSec, 60000);
-    };
+
+        // Force first run immediately (sonDurum = null ensures transition triggers)
+        sonDurum = null;
+        akillıDonguAdimi();
+
+        // Then check every 30 seconds
+        donguTimer = setInterval(akillıDonguAdimi, 30000);
+    }
 </script>
 </body>
 </html>

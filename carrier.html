@@ -2,54 +2,213 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>SÜRÜ — YÖNETİCİ PANELİ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sürü - YÖNETİCİ PANELİ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #050508; color: #00e5ff; font-family: 'Roboto Mono', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 30px 20px; }
-        h1 { font-size: 1.5rem; letter-spacing: 4px; color: #fff; margin-bottom: 6px; }
-        .sub { color: #444; font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 30px; }
-        .panel { border: 1px solid #1a1d2e; background: #0d0f1a; padding: 24px 30px; border-radius: 6px; min-width: 320px; max-width: 480px; width: 100%; margin-bottom: 20px; }
-        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.85rem; }
-        .row label { color: #444; letter-spacing: 1px; }
-        .row .val { color: #fff; font-weight: 700; }
-        .big-code { font-size: 3rem; font-weight: 700; text-align: center; color: #fff; background: #ff2d55; padding: 12px 20px; border-radius: 6px; letter-spacing: 12px; margin: 16px 0; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
-        .btn { background: #00e5ff; color: #000; padding: 14px 28px; font-weight: 700; cursor: pointer; border: none; font-size: 1rem; letter-spacing: 2px; border-radius: 4px; margin-top: 10px; width: 100%; transition: 0.2s; font-family: 'Roboto Mono', monospace; }
-        .btn:hover:not(:disabled) { background: #fff; }
-        .btn:disabled { background: #1a1d2e; color: #444; cursor: not-allowed; }
-        .log { color: #444; font-size: 0.78rem; letter-spacing: 1px; margin-top: 16px; }
-        .status-aktif { color: #00e5ff; }
-        .status-kapali { color: #ff2d55; }
-        .zaman-bar { margin-top: 20px; }
-        .zaman-satir { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 3px; margin-bottom: 4px; font-size: 0.75rem; border-left: 3px solid #1a1d2e; }
-        .zaman-satir.aktif { border-color: #00e5ff; background: rgba(0,229,255,0.05); color: #00e5ff; }
-        .zaman-satir.ders-slot { color: #555; }
-        .zaman-satir.teneffus-slot { color: #888; }
+        :root {
+            --arka-plan:    #0f1015;
+            --panel:        #1a1c23;
+            --vurgu-renk:   #00ffcc;
+            --kirmizi-alarm:#ff3366;
+            --metin:        #ffffff;
+            --metin-soluk:  #8a8d98;
+            --altin:        #ffd700;
+        }
+
+        * { box-sizing:border-box; margin:0; padding:0; }
+
+        body {
+            background: var(--arka-plan); color: var(--metin);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; padding:30px 20px;
+        }
+
+        /* ── PASSWORD GATE ── */
+        #sifre-ekrani {
+            display:flex; flex-direction:column; align-items:center;
+            justify-content:center; width:100%;
+        }
+
+        .sifre-kutu {
+            background: var(--panel); border:1px solid #2a2c35;
+            border-radius:20px; padding:40px; text-align:center;
+            width:90%; max-width:360px;
+            box-shadow:0 10px 40px rgba(0,0,0,.6);
+            animation:fadeUp .4s ease both;
+        }
+
+        @keyframes fadeUp {
+            from{opacity:0;transform:translateY(18px);}
+            to  {opacity:1;transform:translateY(0);}
+        }
+
+        .sifre-kutu h2 { color:var(--vurgu-renk); font-size:1.6rem; letter-spacing:2px; margin-bottom:6px; }
+        .sifre-kutu p  { color:var(--metin-soluk); font-size:.85rem; margin-bottom:22px; }
+
+        .sifre-input {
+            width:100%; padding:14px; background:#000; border:1px solid #333;
+            color:#fff; border-radius:10px; font-size:1.5rem; text-align:center;
+            outline:none; font-family:'Roboto Mono',monospace;
+            letter-spacing:5px; margin-bottom:14px;
+            transition:border-color .2s;
+        }
+        .sifre-input:focus { border-color:var(--vurgu-renk); }
+
+        .btn-gir {
+            width:100%; padding:14px; background:var(--metin); color:#000;
+            border:none; border-radius:10px; font-size:1rem; font-weight:900;
+            letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+            transition:.2s; font-family:'Montserrat',sans-serif;
+        }
+        .btn-gir:hover { background:var(--vurgu-renk); transform:scale(.98); }
+
+        #sifre-hata {
+            margin-top:12px; color:var(--kirmizi-alarm);
+            font-weight:700; font-size:.85rem; min-height:18px;
+        }
+
+        /* ── MAIN PANEL ── */
+        #panel-ekrani { display:none; width:100%; max-width:520px; }
+
+        .panel-baslik {
+            text-align:center; margin-bottom:24px;
+        }
+        .panel-baslik h1 { font-size:1.6rem; letter-spacing:3px; color:var(--vurgu-renk); }
+        .panel-baslik p  { color:var(--metin-soluk); font-size:.8rem; margin-top:4px; }
+
+        .kart {
+            background: var(--panel); border:1px solid #2a2c35;
+            border-radius:16px; padding:22px 24px; margin-bottom:16px;
+            box-shadow:0 6px 20px rgba(0,0,0,.4);
+        }
+
+        .bilgi-satir {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:10px 0; border-bottom:1px solid #2a2c35; font-size:.9rem;
+        }
+        .bilgi-satir:last-child { border-bottom:none; }
+        .bilgi-etiket { color:var(--metin-soluk); font-size:.78rem; letter-spacing:1.5px; text-transform:uppercase; }
+        .bilgi-deger  { font-family:'Roboto Mono',monospace; font-weight:700; font-size:.95rem; }
+
+        .durum-aktif  { color:var(--vurgu-renk); }
+        .durum-kapali { color:var(--kirmizi-alarm); }
+
+        .buyuk-kod {
+            font-size:3.5rem; font-weight:900; text-align:center;
+            background: var(--kirmizi-alarm); color:#fff;
+            padding:12px 20px; border-radius:12px; letter-spacing:12px;
+            font-family:'Roboto Mono',monospace; margin:14px 0 6px;
+            box-shadow:0 0 20px rgba(255,51,102,.4);
+            animation:codePulse 1.5s ease-in-out infinite;
+        }
+        @keyframes codePulse {
+            0%,100%{box-shadow:0 0 18px rgba(255,51,102,.4);}
+            50%    {box-shadow:0 0 36px rgba(255,51,102,.8);}
+        }
+        .buyuk-kod.kapali {
+            background:#222; letter-spacing:8px;
+            box-shadow:none; animation:none; color:#555;
+        }
+
+        .btn-baslat {
+            width:100%; padding:16px; background:var(--vurgu-renk); color:#000;
+            border:none; border-radius:12px; font-size:1.1rem; font-weight:900;
+            letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+            transition:.2s; font-family:'Montserrat',sans-serif;
+        }
+        .btn-baslat:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,255,204,.3); }
+        .btn-baslat:disabled { background:#333; color:#555; cursor:not-allowed; }
+
+        #durum-log {
+            font-family:'Roboto Mono',monospace; font-size:.78rem;
+            color:var(--metin-soluk); text-align:center; min-height:16px;
+            margin-top:10px;
+        }
+
+        /* Schedule table */
+        .program-satir {
+            display:flex; justify-content:space-between;
+            padding:8px 10px; border-radius:8px;
+            margin-bottom:4px; font-size:.78rem;
+            border-left:3px solid #2a2c35;
+        }
+        .program-satir.aktif-slot {
+            border-color:var(--vurgu-renk);
+            background:rgba(0,255,204,.05);
+            color:var(--vurgu-renk);
+        }
+        .program-satir.ders-slot   { color:#3a3d4a; }
+        .program-satir.serbest-slot{ color:var(--metin-soluk); }
     </style>
 </head>
 <body>
 
-<h1>SÜRÜ YÖNETİCİSİ</h1>
-<div class="sub">GAME MASTER PANEL — Bu ekranı kapatma!</div>
-
-<div class="panel">
-    <div class="row"><label>DURUM</label><span class="val" id="sistem-durum">BEKLENIYOR</span></div>
-    <div class="row"><label>ŞU ANKİ TAŞIYICI</label><span class="val" id="aktif-tasiyici" style="color:#ff2d55">YOK</span></div>
-    <div class="row"><label>ŞU ANKİ ZAMAN</label><span class="val" id="simdi-zaman">--:--</span></div>
-    <div class="row"><label>DÖNEM</label><span class="val" id="simdi-donem">---</span></div>
-    <div class="big-code" id="aktif-kod">----</div>
-    <button class="btn" id="dongu-btn" onclick="donguyuBaslat()">OTOMATİK DÖNGÜYÜ BAŞLAT</button>
-    <p class="log" id="durum-log">Başlatmak için butona bas.</p>
+<!-- ── PASSWORD GATE ── -->
+<div id="sifre-ekrani">
+    <div class="sifre-kutu">
+        <h2>YÖNETİCİ PANELİ</h2>
+        <p>Sadece yetkili kişiler erişebilir.</p>
+        <input type="password" id="sifre-input" class="sifre-input"
+               placeholder="••••••" maxlength="20"
+               onkeydown="if(event.key==='Enter') sifreKontrol()">
+        <button class="btn-gir" onclick="sifreKontrol()">GİRİŞ</button>
+        <p id="sifre-hata"></p>
+    </div>
 </div>
 
-<div class="panel zaman-bar">
-    <div style="color:#444; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px;">DERS PROGRAMI (HAZ FEN A)</div>
-    <div id="zaman-listesi"></div>
+<!-- ── MAIN PANEL (hidden until correct password) ── -->
+<div id="panel-ekrani">
+
+    <div class="panel-baslik">
+        <h1>YÖNETİCİ PANELİ</h1>
+        <p>Bu sekmeyi kapatma — oyun bu sayfa üzerinden çalışır.</p>
+    </div>
+
+    <!-- Status card -->
+    <div class="kart">
+        <div class="bilgi-satir">
+            <span class="bilgi-etiket">Sistem Durumu</span>
+            <span class="bilgi-deger durum-kapali" id="sistem-durum">BEKLENİYOR</span>
+        </div>
+        <div class="bilgi-satir">
+            <span class="bilgi-etiket">Aktif Taşıyıcı</span>
+            <span class="bilgi-deger durum-kapali" id="aktif-tasiyici">YOK</span>
+        </div>
+        <div class="bilgi-satir">
+            <span class="bilgi-etiket">Şu Anki Saat</span>
+            <span class="bilgi-deger" id="simdi-zaman" style="color:var(--metin)">--:--:--</span>
+        </div>
+        <div class="bilgi-satir">
+            <span class="bilgi-etiket">Dönem</span>
+            <span class="bilgi-deger" id="simdi-donem">---</span>
+        </div>
+        <div class="buyuk-kod kapali" id="aktif-kod">----</div>
+        <p id="durum-log"></p>
+    </div>
+
+    <!-- Start button -->
+    <div class="kart" style="text-align:center">
+        <button class="btn-baslat" id="dongu-btn" onclick="donguyuBaslat()">OTOMATİK DÖNGÜYÜ BAŞLAT</button>
+        <p style="color:var(--metin-soluk); font-size:.75rem; margin-top:10px;">Her dakika otomatik olarak yeni taşıyıcı seçilir.</p>
+    </div>
+
+    <!-- Schedule -->
+    <div class="kart">
+        <p style="color:var(--metin-soluk); font-size:.72rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:12px;">Ders Programı (HAZ FEN A)</p>
+        <div id="program-listesi"></div>
+    </div>
+
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    /* ── CHANGE THIS PASSWORD ── */
+    const DOGRU_SIFRE = "suruyonetici2025";
+    /* ─────────────────────────── */
 
     const firebaseConfig = {
         apiKey: "AIzaSyCzCI_RU9eE-MIeR-2jcwaLRz74hmRqnuQ",
@@ -61,125 +220,139 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    let donguAktif = false;
-    let timer;
+    const db  = getFirestore(app);
 
-    // ─── SCHEDULE matching the school image exactly ───
-    const zamanCizelgesi = [
-        { bas: 495, bit: 570, tur: "ders", ad: "1-2. Ders", saat: "8:15–9:30" },
-        { bas: 570, bit: 590, tur: "teneffus", ad: "Teneffüs", saat: "9:30–9:50" },
-        { bas: 590, bit: 665, tur: "ders", ad: "3-4. Ders", saat: "9:50–11:05" },
-        { bas: 665, bit: 675, tur: "teneffus", ad: "Teneffüs", saat: "11:05–11:15" },
-        { bas: 675, bit: 715, tur: "ders", ad: "5. Ders", saat: "11:15–11:55" },
-        { bas: 715, bit: 725, tur: "teneffus", ad: "Kısa Ara", saat: "11:55–12:05" },
-        { bas: 725, bit: 765, tur: "ders", ad: "6. Ders", saat: "12:05–12:45" },
-        { bas: 765, bit: 775, tur: "teneffus", ad: "Teneffüs", saat: "12:45–12:55" },
-        { bas: 775, bit: 815, tur: "ders", ad: "7. Ders", saat: "12:55–13:35" },
-        { bas: 815, bit: 855, tur: "teneffus", ad: "Öğle Arası", saat: "13:35–14:15" },
-        { bas: 855, bit: 895, tur: "ders", ad: "8. Ders", saat: "14:15–14:55" },
-        { bas: 895, bit: 900, tur: "teneffus", ad: "Kısa Ara", saat: "14:55–15:00" },
-        { bas: 900, bit: 940, tur: "ders", ad: "9. Ders", saat: "15:00–15:40" },
+    let donguAktif = false;
+    let donguTimer;
+
+    /* ── SCHEDULE ── */
+    const ZAMAN = [
+        { bas:495, bit:570, tur:"ders",     ad:"1-2. Ders",  saat:"08:15–09:30" },
+        { bas:570, bit:590, tur:"teneffus", ad:"Teneffüs",   saat:"09:30–09:50" },
+        { bas:590, bit:665, tur:"ders",     ad:"3-4. Ders",  saat:"09:50–11:05" },
+        { bas:665, bit:675, tur:"teneffus", ad:"Teneffüs",   saat:"11:05–11:15" },
+        { bas:675, bit:715, tur:"ders",     ad:"5. Ders",    saat:"11:15–11:55" },
+        { bas:715, bit:725, tur:"teneffus", ad:"Kısa Ara",   saat:"11:55–12:05" },
+        { bas:725, bit:765, tur:"ders",     ad:"6. Ders",    saat:"12:05–12:45" },
+        { bas:765, bit:775, tur:"teneffus", ad:"Teneffüs",   saat:"12:45–12:55" },
+        { bas:775, bit:815, tur:"ders",     ad:"7. Ders",    saat:"12:55–13:35" },
+        { bas:815, bit:855, tur:"teneffus", ad:"Öğle Arası", saat:"13:35–14:15" },
+        { bas:855, bit:895, tur:"ders",     ad:"8. Ders",    saat:"14:15–14:55" },
+        { bas:895, bit:900, tur:"teneffus", ad:"Kısa Ara",   saat:"14:55–15:00" },
+        { bas:900, bit:940, tur:"ders",     ad:"9. Ders",    saat:"15:00–15:40" },
     ];
 
-    // Render schedule
-    function renderZaman() {
-        const liste = document.getElementById("zaman-listesi");
-        const simdi = new Date();
-        const toplamDakika = simdi.getHours() * 60 + simdi.getMinutes();
-        liste.innerHTML = "";
-        zamanCizelgesi.forEach(z => {
-            const aktif = toplamDakika >= z.bas && toplamDakika < z.bit;
-            const sinif = aktif ? "aktif" : z.tur === "ders" ? "ders-slot" : "teneffus-slot";
-            liste.innerHTML += `
-                <div class="zaman-satir ${sinif}">
+    function zamanDurumuKontrol() {
+        const t = new Date().getHours() * 60 + new Date().getMinutes();
+        for (const z of ZAMAN) if (t >= z.bas && t < z.bit) return z;
+        return { tur:"teneffus", ad:"Serbest Vakit", saat:"--" };
+    }
+
+    function programiGuncelle() {
+        const t = new Date().getHours() * 60 + new Date().getMinutes();
+        const listesi = document.getElementById("program-listesi");
+        if (!listesi) return;
+        listesi.innerHTML = "";
+        ZAMAN.forEach(z => {
+            const aktif = t >= z.bas && t < z.bit;
+            const sinif = aktif ? "aktif-slot" : z.tur === "ders" ? "ders-slot" : "serbest-slot";
+            const icon  = z.tur === "ders" ? "🔒" : "📶";
+            listesi.innerHTML += `
+                <div class="program-satir ${sinif}">
                     <span>${z.saat} — ${z.ad}</span>
-                    <span>${z.tur === "ders" ? "🔒" : "📶"}${aktif ? " ◀" : ""}</span>
-                </div>
-            `;
+                    <span>${icon}${aktif ? " ◀ ŞU AN" : ""}</span>
+                </div>`;
         });
     }
 
-    function zamanDurumuKontrol() {
-        const simdi = new Date();
-        const toplamDakika = simdi.getHours() * 60 + simdi.getMinutes();
-        for (let z of zamanCizelgesi) {
-            if (toplamDakika >= z.bas && toplamDakika < z.bit) return z;
-        }
-        return { tur: "teneffus", ad: "Okul Dışı Saat" };
-    }
-
     function saatiGuncelle() {
-        const simdi = new Date();
-        const h = String(simdi.getHours()).padStart(2, '0');
-        const m = String(simdi.getMinutes()).padStart(2, '0');
-        const s = String(simdi.getSeconds()).padStart(2, '0');
-        document.getElementById("simdi-zaman").innerText = `${h}:${m}:${s}`;
-        const d = zamanDurumuKontrol();
+        const n = new Date();
+        const str = [n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,"0")).join(":");
+        const el = document.getElementById("simdi-zaman");
+        if (el) el.innerText = str;
+        const zaman = zamanDurumuKontrol();
         const donemEl = document.getElementById("simdi-donem");
-        donemEl.innerText = d.ad;
-        donemEl.className = d.tur === "ders" ? "val status-kapali" : "val status-aktif";
+        if (donemEl) {
+            donemEl.innerText   = zaman.ad;
+            donemEl.className   = "bilgi-deger " + (zaman.tur === "ders" ? "durum-kapali" : "durum-aktif");
+        }
     }
 
-    setInterval(saatiGuncelle, 1000);
-    saatiGuncelle();
-    setInterval(renderZaman, 5000);
-    renderZaman();
+    /* ── PASSWORD CHECK ── */
+    window.sifreKontrol = function() {
+        const girilen = document.getElementById("sifre-input").value;
+        if (girilen === DOGRU_SIFRE) {
+            document.getElementById("sifre-ekrani").style.display = "none";
+            document.getElementById("panel-ekrani").style.display = "block";
+            saatiGuncelle();
+            programiGuncelle();
+            setInterval(saatiGuncelle,  1000);
+            setInterval(programiGuncelle, 10000);
+        } else {
+            const el = document.getElementById("sifre-hata");
+            el.innerText = "⚠ Hatalı şifre!";
+            document.getElementById("sifre-input").value = "";
+            setTimeout(() => { el.innerText = ""; }, 2500);
+        }
+    };
 
+    /* ── SELECT NEW CARRIER ── */
     window.yeniTasiyiciSec = async function() {
-        const log = document.getElementById("durum-log");
-        const durum = zamanDurumuKontrol();
+        const log   = document.getElementById("durum-log");
+        const zaman = zamanDurumuKontrol();
+        saatiGuncelle(); programiGuncelle();
 
-        saatiGuncelle();
-        renderZaman();
-
-        if (durum.tur === "ders") {
-            document.getElementById("sistem-durum").innerHTML = `<span class="status-kapali">KAPALI (${durum.ad})</span>`;
+        if (zaman.tur === "ders") {
+            document.getElementById("sistem-durum").innerText   = `KAPALI — ${zaman.ad}`;
+            document.getElementById("sistem-durum").className   = "bilgi-deger durum-kapali";
             document.getElementById("aktif-tasiyici").innerText = "YOK";
-            document.getElementById("aktif-kod").innerText = "----";
-            document.getElementById("aktif-kod").style.background = "#1a1d2e";
+            const kodEl = document.getElementById("aktif-kod");
+            kodEl.innerText  = "----"; kodEl.className = "buyuk-kod kapali";
             await setDoc(doc(db, "gameState", "carrier"), {
-                durum: "pasif", hedefIsim: "DERS VAKTİ",
-                aktifKod: "----", zamanDamgasi: Date.now()
+                durum:"pasif", hedefIsim:"DERS VAKTİ", aktifKod:"----", zamanDamgasi:Date.now()
             });
-            log.innerText = `[${new Date().toLocaleTimeString()}] Ders vakti — sistem kapalı.`;
+            if (log) log.innerText = `[${new Date().toLocaleTimeString()}] ${zaman.ad} — sistem kapalı.`;
             return;
         }
 
-        document.getElementById("sistem-durum").innerHTML = `<span class="status-aktif">AKTİF (${durum.ad})</span>`;
-        document.getElementById("aktif-kod").style.background = "#ff2d55";
+        document.getElementById("sistem-durum").innerText = `AKTİF — ${zaman.ad}`;
+        document.getElementById("sistem-durum").className = "bilgi-deger durum-aktif";
 
         try {
             const playersSnap = await getDocs(collection(db, "players"));
-            let oyuncular = [];
-            playersSnap.forEach(d => oyuncular.push({ id: d.id, isim: d.data().isim }));
+            const oyuncular = [];
+            playersSnap.forEach(d => { if (d.data().isim) oyuncular.push({ id:d.id, isim:d.data().isim }); });
 
             if (oyuncular.length > 0) {
                 const secilen = oyuncular[Math.floor(Math.random() * oyuncular.length)];
                 const yeniKod = Math.floor(1000 + Math.random() * 9000).toString();
 
                 await setDoc(doc(db, "gameState", "carrier"), {
-                    hedefOyuncuID: secilen.id, hedefIsim: secilen.isim,
-                    aktifKod: yeniKod, durum: "aktif", zamanDamgasi: Date.now()
+                    hedefOyuncuID:secilen.id, hedefIsim:secilen.isim,
+                    aktifKod:yeniKod, durum:"aktif", zamanDamgasi:Date.now()
                 });
 
                 document.getElementById("aktif-tasiyici").innerText = secilen.isim.toUpperCase();
-                document.getElementById("aktif-kod").innerText = yeniKod;
-                log.innerText = `[${new Date().toLocaleTimeString()}] Yeni taşıyıcı: ${secilen.isim}`;
+                document.getElementById("aktif-tasiyici").className = "bilgi-deger durum-kapali";
+                const kodEl = document.getElementById("aktif-kod");
+                kodEl.innerText = yeniKod; kodEl.className = "buyuk-kod";
+                if (log) log.innerText = `[${new Date().toLocaleTimeString()}] Yeni taşıyıcı: ${secilen.isim}`;
             } else {
-                log.innerText = `[${new Date().toLocaleTimeString()}] Hiç oyuncu yok!`;
+                if (log) log.innerText = `[${new Date().toLocaleTimeString()}] Hiç kayıtlı oyuncu yok.`;
             }
-        } catch (e) { log.innerText = "Hata: " + e.message; }
+        } catch(e) {
+            if (log) log.innerText = `[${new Date().toLocaleTimeString()}] Hata: ${e.message}`;
+        }
     };
 
     window.donguyuBaslat = function() {
         if (donguAktif) return;
         donguAktif = true;
         const btn = document.getElementById("dongu-btn");
-        btn.innerText = "DÖNGÜ ÇALIŞIYOR";
-        btn.disabled = true;
+        btn.innerText  = "DÖNGÜ ÇALIŞIYOR ✓";
+        btn.disabled   = true;
         yeniTasiyiciSec();
-        timer = setInterval(yeniTasiyiciSec, 60000);
+        donguTimer = setInterval(yeniTasiyiciSec, 60000);
     };
 </script>
 </body>

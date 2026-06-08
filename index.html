@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* ── EXACT ORIGINAL PALETTE ── */
         :root {
             --arka-plan:    #0f1015;
             --panel:        #1a1c23;
@@ -16,12 +15,12 @@
             --metin:        #ffffff;
             --metin-soluk:  #8a8d98;
             --altin:        #ffd700;
+            --mor:          #a855f7;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin:0; padding:0; }
 
         body {
-            background: var(--arka-pan, #0f1015);
             background-color: var(--arka-plan);
             color: var(--metin);
             font-family: 'Montserrat', sans-serif;
@@ -139,11 +138,22 @@
             position: relative; overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,.5);
             cursor: pointer;
-            transition: transform .2s, box-shadow .2s;
+            transition: transform .2s, box-shadow .2s, border-color .2s;
         }
         .canavar-kart:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.7); }
+        .canavar-kart.secili-kart {
+            border-color: var(--vurgu-renk) !important;
+            box-shadow: 0 0 20px rgba(0,255,204,0.4) !important;
+            transform: translateY(-4px) scale(1.03);
+        }
+        .secim-rozeti {
+            position: absolute; top: 6px; right: 6px;
+            background: var(--vurgu-renk); color: #000;
+            font-size: 0.65rem; font-weight: 900; padding: 2px 6px;
+            border-radius: 8px; display: none;
+        }
+        .canavar-kart.secili-kart .secim-rozeti { display: block; }
 
-        /* Thin top colour stripe — only addition to original card style */
         .canavar-kart::before {
             content:''; position:absolute; top:0; left:0; right:0; height:3px;
             background: var(--kart-renk, #333); border-radius: 15px 15px 0 0;
@@ -158,6 +168,7 @@
 
         .canavar-isim  { font-weight:900; font-size:.95rem; margin-bottom:5px; text-shadow:0 2px 4px rgba(0,0,0,.8); }
         .nadir-etiket  { font-size:.7rem; font-weight:900; padding:4px 8px; border-radius:5px; background:#000; display:inline-block; letter-spacing:1px; }
+        .kart-guc      { font-family:'Roboto Mono',monospace; font-size:.7rem; color:var(--metin-soluk); margin-top:5px; }
 
         /* ── RADAR ── */
         .radar-uyari {
@@ -217,7 +228,6 @@
         .btn-cevir:hover:not(:disabled) { transform:translateY(-3px); box-shadow:0 10px 20px rgba(255,51,102,.4); }
         .btn-cevir:disabled { background:#333; color:#666; cursor:not-allowed; }
 
-        /* Battle button — same style family */
         .btn-savas {
             width:100%; padding:13px; background:transparent;
             border:1px solid rgba(255,215,0,.4); color:var(--altin);
@@ -298,7 +308,6 @@
             box-shadow:0 0 50px rgba(255,255,255,.2);
         }
         .yeni-resim img { width:100%; height:100%; object-fit:cover; }
-        /* Shine sweep on reveal */
         .yeni-resim::after {
             content:''; position:absolute; top:0; left:-80%;
             width:60%; height:100%;
@@ -307,30 +316,155 @@
         }
         @keyframes shine { to{left:140%;} }
 
-        /* ── BATTLE SCREEN ── */
+        /* ══════════════════════════════════════════
+           ── ORDU KURMA EKRANI ──
+        ══════════════════════════════════════════ */
+        #ordu-ekrani {
+            position:fixed; inset:0; z-index:250;
+            background:rgba(0,0,0,.97);
+            display:none; flex-direction:column; overflow:hidden;
+        }
+
+        .ordu-header {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:16px 24px;
+            background:var(--panel); border-bottom:1px solid #2a2c35;
+            flex-shrink:0;
+        }
+        .ordu-baslik { font-size:1.2rem; font-weight:900; letter-spacing:2px; color:var(--altin); }
+        .ordu-alt    { font-size:.78rem; color:var(--metin-soluk); margin-top:2px; }
+
+        .ordu-body {
+            flex:1; display:flex; flex-direction:column;
+            overflow:hidden;
+        }
+
+        /* Seçili ordu bandı */
+        .ordu-bant {
+            background:#0a0b0f; border-bottom:1px solid #2a2c35;
+            padding:14px 20px; flex-shrink:0;
+        }
+        .ordu-bant-baslik {
+            font-size:.7rem; color:var(--metin-soluk); letter-spacing:2px;
+            text-transform:uppercase; margin-bottom:10px; font-weight:700;
+        }
+        .ordu-slotlar {
+            display:flex; gap:10px; overflow-x:auto;
+            padding-bottom:4px;
+        }
+        .ordu-slot {
+            flex-shrink:0; width:70px; height:90px;
+            background:#111; border:2px dashed #2a2c35;
+            border-radius:10px; display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            font-size:.65rem; color:#444; text-align:center; overflow:hidden;
+            position:relative; cursor:pointer; transition:.15s;
+        }
+        .ordu-slot.dolu {
+            border-style:solid; cursor:pointer;
+        }
+        .ordu-slot.dolu:hover { opacity:.75; }
+        .ordu-slot img { width:100%; height:60px; object-fit:cover; }
+        .ordu-slot-isim { font-size:.55rem; font-weight:900; padding:2px; }
+        .ordu-slot-guc  { font-family:'Roboto Mono',monospace; font-size:.55rem; color:var(--vurgu-renk); }
+        .ordu-sil-btn {
+            position:absolute; top:2px; right:2px;
+            background:rgba(255,51,102,.8); color:#fff; border:none;
+            border-radius:4px; font-size:.55rem; padding:1px 4px; cursor:pointer;
+            display:none;
+        }
+        .ordu-slot.dolu:hover .ordu-sil-btn { display:block; }
+
+        /* Koleksiyon seçim ızgarası */
+        .ordu-secim-alan {
+            flex:1; overflow-y:auto; padding:16px 20px;
+        }
+        .ordu-secim-baslik {
+            font-size:.7rem; color:var(--metin-soluk); letter-spacing:2px;
+            text-transform:uppercase; margin-bottom:12px; font-weight:700;
+        }
+        .ordu-kart-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(110px, 1fr));
+            gap:12px;
+        }
+        .ordu-kart {
+            background:#111; border:1px solid #2a2c35; border-radius:12px;
+            padding:10px; text-align:center; cursor:pointer;
+            transition:.2s; position:relative; overflow:hidden;
+        }
+        .ordu-kart::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            background: var(--kart-renk, #333);
+        }
+        .ordu-kart:hover { border-color:#555; transform:translateY(-2px); }
+        .ordu-kart.secili {
+            border-color:var(--vurgu-renk);
+            box-shadow:0 0 14px rgba(0,255,204,.3);
+        }
+        .ordu-kart.orduda { opacity:.35; cursor:not-allowed; }
+        .ordu-kart img { width:100%; height:65px; object-fit:cover; border-radius:8px; margin-bottom:6px; }
+        .ordu-kart-isim { font-size:.7rem; font-weight:900; margin-bottom:3px; }
+        .ordu-kart-nadir{ font-size:.6rem; padding:2px 5px; border-radius:4px; background:#000; display:inline-block; }
+        .ordu-kart-guc  { font-family:'Roboto Mono',monospace; font-size:.62rem; color:var(--vurgu-renk); margin-top:3px; }
+
+        /* Güç özeti */
+        .ordu-guc-ozet {
+            display:flex; gap:12px; flex-wrap:wrap;
+            margin-top:12px; font-size:.78rem; font-family:'Roboto Mono',monospace;
+        }
+        .ordu-guc-chip {
+            background:#111; border:1px solid #2a2c35;
+            padding:6px 12px; border-radius:8px;
+        }
+        .ordu-guc-chip span { color:var(--vurgu-renk); font-weight:700; }
+
+        .ordu-footer {
+            padding:16px 20px; background:var(--panel);
+            border-top:1px solid #2a2c35; display:flex; gap:12px; flex-shrink:0;
+        }
+        .btn-ordu-savas {
+            flex:1; padding:16px; background:var(--kirmizi-alarm); color:#fff;
+            border:none; border-radius:12px; font-size:1rem; font-weight:900;
+            letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+            font-family:'Montserrat',sans-serif; transition:.2s;
+        }
+        .btn-ordu-savas:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 20px rgba(255,51,102,.4); }
+        .btn-ordu-savas:disabled { background:#333; color:#666; cursor:not-allowed; }
+        .btn-ordu-iptal {
+            padding:16px 20px; background:transparent; color:#666;
+            border:1px solid #333; border-radius:12px; font-weight:900;
+            cursor:pointer; font-family:'Montserrat',sans-serif; transition:.2s;
+        }
+        .btn-ordu-iptal:hover { border-color:#555; color:#aaa; }
+
+        /* ══════════════════════════════════════════
+           ── BATTLE SCREEN ──
+        ══════════════════════════════════════════ */
         #savas-ekrani {
             position:fixed; inset:0; z-index:300;
             background:#080910;
             display:none; flex-direction:column; overflow:hidden;
-            /* subtle grid — only visual addition beyond original theme */
             background-image:
                 linear-gradient(rgba(0,255,204,.02) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0,255,204,.02) 1px, transparent 1px);
             background-size:40px 40px;
         }
 
+        /* --- Üst alan: savaş alanı --- */
         .savas-arena {
-            flex:1; position:relative; padding:22px;
+            flex:1; position:relative; padding:16px 20px;
             display:flex; flex-direction:column; justify-content:space-between;
+            min-height:0;
         }
 
         .hud-kutu {
             background:rgba(10,11,18,.96); border:1px solid #2a2c35;
-            border-radius:14px; padding:14px 18px; width:min(310px,90%);
+            border-radius:14px; padding:12px 16px; width:min(320px,100%);
         }
-        .hud-dusman { align-self:flex-end;   border-color:rgba(255,51,102,.4); }
+        .hud-dusman { align-self:flex-end; border-color:rgba(255,51,102,.4); }
         .hud-oyuncu { align-self:flex-start; border-color:rgba(0,255,204,.3); }
-        .hud-isim   { font-size:.9rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
+        .hud-isim   { font-size:.85rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; }
         .hud-dusman .hud-isim { color:var(--kirmizi-alarm); }
         .hud-oyuncu .hud-isim { color:var(--vurgu-renk); }
 
@@ -338,66 +472,123 @@
         .hp-dolum { height:100%; border-radius:6px; transition:width .4s ease-out; }
         .hud-dusman .hp-dolum { background:linear-gradient(90deg,#7a0020,var(--kirmizi-alarm)); }
         .hud-oyuncu .hp-dolum { background:linear-gradient(90deg,#003d30,var(--vurgu-renk)); }
-        .hp-sayi { font-family:'Roboto Mono',monospace; font-size:.74rem; color:var(--metin-soluk); margin-top:5px; text-align:right; }
+        .hp-sayi { font-family:'Roboto Mono',monospace; font-size:.72rem; color:var(--metin-soluk); margin-top:4px; text-align:right; }
 
-        /* Floating shapes (holograms) */
-        .holo-alan { position:absolute; inset:0; pointer-events:none; }
-        .holo-dusman { position:absolute; top:16%; right:18%; width:90px; height:90px; animation:floatAnim 4s ease-in-out infinite; }
-        .holo-oyuncu { position:absolute; bottom:26%; left:18%; width:90px; height:90px; animation:floatAnim 5s ease-in-out infinite reverse; }
-
-        .shape-d {
-            width:80px; height:80px; border:2px solid var(--kirmizi-alarm);
-            transform:rotate(45deg); border-radius:4px;
-            box-shadow:inset 0 0 16px rgba(255,51,102,.25), 0 0 24px rgba(255,51,102,.4);
-            animation:pulseDusman 2s ease-in-out infinite alternate;
+        /* Aktif kart göstergesi */
+        .aktif-kart-alani {
+            position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+            display:flex; flex-direction:column; align-items:center; gap:4px;
+            pointer-events:none;
         }
-        .shape-p {
-            width:80px; height:80px; border-radius:50%;
-            border:2px dashed var(--vurgu-renk);
-            box-shadow:inset 0 0 14px rgba(0,255,204,.15), 0 0 22px rgba(0,255,204,.3);
-            animation:spinP 10s linear infinite;
-            display:flex; align-items:center; justify-content:center;
+        .aktif-kart-goster {
+            width:70px; height:90px; background:#0a0b10;
+            border-radius:10px; overflow:hidden;
+            border:2px solid #2a2c35;
+            box-shadow:0 0 20px rgba(0,0,0,.8);
         }
-        .shape-p::after { content:''; width:34px; height:34px; border:2px solid var(--vurgu-renk); transform:rotate(45deg); border-radius:3px; }
+        .aktif-kart-goster img { width:100%; height:100%; object-fit:cover; }
+        .aktif-kart-label { font-size:.6rem; color:var(--metin-soluk); font-weight:700; letter-spacing:1px; text-transform:uppercase; }
 
-        @keyframes floatAnim   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
-        @keyframes spinP       { 100%{transform:rotate(360deg)} }
-        @keyframes pulseDusman { 0%{opacity:.6;transform:rotate(45deg) scale(.9)} 100%{opacity:1;transform:rotate(45deg) scale(1.1)} }
+        /* Ordu küçük slotlar */
+        .ordu-kutu-oyuncu { display:flex; gap:5px; flex-wrap:wrap; max-width:200px; }
+        .ordu-kutu-dusman { display:flex; gap:5px; flex-wrap:wrap; max-width:200px; justify-content:flex-end; }
+        .mini-kart {
+            width:36px; height:46px; background:#111; border-radius:5px;
+            overflow:hidden; border:1px solid #333; flex-shrink:0;
+            position:relative; transition:.3s;
+        }
+        .mini-kart img { width:100%; height:100%; object-fit:cover; }
+        .mini-kart.geri-donmus { opacity:.2; border-color:#222; }
+        .mini-kart.aktif-mini {
+            border-color:var(--vurgu-renk);
+            box-shadow:0 0 8px rgba(0,255,204,.5);
+        }
+        .mini-kart.aktif-mini-dusman {
+            border-color:var(--kirmizi-alarm);
+            box-shadow:0 0 8px rgba(255,51,102,.5);
+        }
 
+        /* --- Savaş terminali --- */
         .savas-terminal {
             background:rgba(7,8,12,.98); border-top:1px solid #2a2c35;
-            height:230px; display:flex;
+            height:240px; display:flex; flex-shrink:0;
         }
 
         .savas-log {
-            flex:1; padding:14px 16px; border-right:1px solid #2a2c35;
+            flex:1; padding:12px 14px; border-right:1px solid #2a2c35;
             overflow-y:auto; display:flex; flex-direction:column; gap:3px;
-            font-family:'Roboto Mono',monospace; font-size:.78rem;
+            font-family:'Roboto Mono',monospace; font-size:.76rem;
             scrollbar-width:thin; scrollbar-color:#2a2c35 transparent;
         }
         .log-entry         { color:#3a3d4a; }
         .log-entry.sistem  { color:#f0a500; }
         .log-entry.hasar   { color:var(--kirmizi-alarm); }
         .log-entry.vurus   { color:var(--vurgu-renk); }
+        .log-entry.ozel    { color:var(--mor); }
         .log-entry.kazan   { color:#00ff88; font-weight:700; }
 
+        /* --- Sağ: Kart seçim + aksiyonlar --- */
+        .savas-sag {
+            width:200px; display:flex; flex-direction:column; overflow:hidden;
+        }
+
+        /* Kart sırası */
+        .kart-sirasi {
+            padding:10px; border-bottom:1px solid #2a2c35;
+            display:flex; gap:6px; overflow-x:auto; flex-shrink:0;
+        }
+        .kart-secim-slot {
+            flex-shrink:0; width:48px; height:62px;
+            background:#111; border:1px solid #2a2c35;
+            border-radius:7px; overflow:hidden; cursor:pointer;
+            transition:.2s; position:relative;
+        }
+        .kart-secim-slot img { width:100%; height:100%; object-fit:cover; }
+        .kart-secim-slot:hover { border-color:#555; }
+        .kart-secim-slot.aktif-secim { border-color:var(--vurgu-renk); box-shadow:0 0 8px rgba(0,255,204,.4); }
+        .kart-secim-slot.kullanildi { opacity:.2; cursor:not-allowed; pointer-events:none; }
+        .kart-secim-slot .slot-guc {
+            position:absolute; bottom:0; left:0; right:0;
+            background:rgba(0,0,0,.8); font-family:'Roboto Mono',monospace;
+            font-size:.5rem; text-align:center; color:var(--vurgu-renk); padding:1px;
+        }
+
+        /* Aksiyon butonları */
         .aksiyon-grid {
             flex:1; display:grid;
             grid-template-columns:1fr 1fr;
             grid-template-rows:1fr 1fr;
-            gap:8px; padding:14px;
+            gap:6px; padding:10px;
         }
         .btn-aksiyon {
             background:#111; border:1px solid #2a2c35;
             color:var(--metin-soluk); font-family:'Montserrat',sans-serif;
-            font-size:.88rem; font-weight:900; text-transform:uppercase;
+            font-size:.78rem; font-weight:900; text-transform:uppercase;
             cursor:pointer; border-radius:10px; transition:.2s; letter-spacing:.5px;
+            display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
         }
+        .btn-aksiyon .aksiyon-aciklama { font-size:.55rem; font-weight:400; color:#555; }
         .btn-aksiyon:hover:not(:disabled) { background:#1a1c23; border-color:#555; color:#fff; }
         .btn-aksiyon.saldiri { color:var(--vurgu-renk);    border-color:rgba(0,255,204,.3); }
-        .btn-aksiyon.ozel    { color:var(--kirmizi-alarm); border-color:rgba(255,51,102,.3); }
-        .btn-aksiyon.kacis   { color:var(--altin);         border-color:rgba(255,215,0,.3); }
+        .btn-aksiyon.ozel    { color:var(--mor); border-color:rgba(168,85,247,.3); }
+        .btn-aksiyon.savunma { color:var(--altin); border-color:rgba(255,215,0,.3); }
+        .btn-aksiyon.kacis   { color:#555; border-color:#2a2c35; }
         .btn-aksiyon:disabled { opacity:.25; cursor:not-allowed; }
+
+        /* Hasar sayacı */
+        @keyframes hasarUc {
+            0%   { opacity:1; transform:translateY(0) scale(1); }
+            100% { opacity:0; transform:translateY(-60px) scale(1.4); }
+        }
+        .hasar-sayac {
+            position:absolute; font-family:'Roboto Mono',monospace;
+            font-size:1.6rem; font-weight:900; pointer-events:none;
+            animation:hasarUc 1s forwards; z-index:999;
+        }
+        .hasar-sayac.vurus  { color:var(--vurgu-renk); }
+        .hasar-sayac.hasar  { color:var(--kirmizi-alarm); }
+        .hasar-sayac.ozel   { color:var(--mor); font-size:2rem; }
+        .hasar-sayac.kritik { color:var(--altin); font-size:2.2rem; }
 
         @keyframes screenShake {
             0%,100%{transform:translate(0,0)}
@@ -406,6 +597,21 @@
             75%{transform:translate(-2px,2px)}
         }
         .sarsil { animation:screenShake .35s ease; }
+
+        /* Savaş sonu */
+        .savas-sonu-panel {
+            position:absolute; inset:0; background:rgba(0,0,0,.92);
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            gap:16px; z-index:999;
+        }
+        .savas-sonu-baslik { font-size:2.5rem; font-weight:900; letter-spacing:4px; }
+        .savas-sonu-altyazi { color:var(--metin-soluk); font-size:.9rem; text-align:center; max-width:300px; }
+        .btn-savas-kapat {
+            padding:14px 30px; border-radius:12px; font-weight:900;
+            cursor:pointer; font-family:'Montserrat',sans-serif; font-size:1rem;
+            letter-spacing:1px; text-transform:uppercase; border:none;
+            background:var(--vurgu-renk); color:#000;
+        }
     </style>
 </head>
 <body>
@@ -442,25 +648,25 @@
 
     <div class="ana-ekran">
 
-        <!-- Left: collection -->
+        <!-- Sol: koleksiyon -->
         <div class="sol-panel">
-            <div class="baslik">Koleksiyonun</div>
+            <div class="baslik">Koleksiyonun <span id="secim-sayac" style="color:var(--vurgu-renk); font-size:.8rem;"></span></div>
             <div class="koleksiyon-grid" id="envanter-listesi"></div>
         </div>
 
-        <!-- Right: radar + code -->
+        <!-- Sağ: radar + kod -->
         <div class="sag-panel">
             <div id="radar-durum" class="radar-uyari radar-bekle">📡 RADAR: SİNYAL ARANIYOR...</div>
 
-            <!-- Hunter -->
+            <!-- Avcı modu -->
             <div id="avci-modu" class="kod-kutusu">
                 <div class="kod-label">Taşıyıcı Kodunu Gir</div>
                 <input type="text" id="hedef-kod" class="kod-input" placeholder="----" maxlength="4" disabled inputmode="numeric">
                 <button class="btn-cevir" onclick="koduCozVeCevir()" disabled>KODU ÇÖZ &amp; ÇEVİR</button>
-                <button class="btn-savas" id="savas-btn" onclick="savasBaslat()" disabled>⚔ MEYDAN OKU</button>
+                <button class="btn-savas" id="savas-btn" onclick="orduKurEkraniniAc()" disabled>⚔ ORDU KUR &amp; MEYDAN OKU</button>
             </div>
 
-            <!-- Carrier -->
+            <!-- Taşıyıcı modu -->
             <div id="tasiyici-modu" class="kod-kutusu" style="display:none; border-color:var(--kirmizi-alarm); box-shadow:inset 0 0 40px rgba(255,51,102,.15);">
                 <div class="tasiyici-uyari">⚠ SEN TAŞIYICISIN ⚠</div>
                 <div class="tasiyici-desc">Diğer avcılar seni arıyor. Kodu onlara göster!</div>
@@ -499,39 +705,113 @@
     </div>
 </div>
 
-<!-- ── BATTLE ── -->
+<!-- ══════════════════════════════════════════
+     ── ORDU KURMA EKRANI ──
+══════════════════════════════════════════ -->
+<div id="ordu-ekrani">
+    <div class="ordu-header">
+        <div>
+            <div class="ordu-baslik">⚔ ORDU KUR</div>
+            <div class="ordu-alt" id="ordu-alt-metin">En fazla 5 kart seç. Kartların güçleri savaşı belirler.</div>
+        </div>
+        <div class="ordu-guc-ozet" id="ordu-guc-ozet">
+            <div class="ordu-guc-chip">HP: <span id="ordu-hp">---</span></div>
+            <div class="ordu-guc-chip">GÜÇ: <span id="ordu-guc">---</span></div>
+        </div>
+    </div>
+
+    <div class="ordu-body">
+        <!-- Seçili slotlar -->
+        <div class="ordu-bant">
+            <div class="ordu-bant-baslik">Seçili Ordu (maks. 5) — Sil için karta tıkla</div>
+            <div class="ordu-slotlar" id="ordu-slotlar"></div>
+        </div>
+
+        <!-- Koleksiyon seçim -->
+        <div class="ordu-secim-alan">
+            <div class="ordu-secim-baslik">Koleksiyonundan Seç</div>
+            <div class="ordu-kart-grid" id="ordu-kart-grid"></div>
+        </div>
+    </div>
+
+    <div class="ordu-footer">
+        <button class="btn-ordu-iptal" onclick="orduEkraniniKapat()">İPTAL</button>
+        <button class="btn-ordu-savas" id="btn-ordu-savas" onclick="orduylaSavasBaslat()" disabled>⚔ SAVAŞA GİT!</button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ── BATTLE SCREEN ──
+══════════════════════════════════════════ -->
 <div id="savas-ekrani">
-    <div class="savas-arena">
+    <div class="savas-arena" id="savas-arena">
+
+        <!-- Düşman HUD -->
         <div class="hud-kutu hud-dusman">
-            <div class="hud-isim" id="dusman-isim">DÜŞMAN</div>
+            <div class="hud-isim">
+                <span id="dusman-isim">DÜŞMAN</span>
+                <div class="ordu-kutu-dusman" id="dusman-mini-ordu"></div>
+            </div>
             <div class="hp-track"><div class="hp-dolum" id="dusman-hp-bar" style="width:100%"></div></div>
             <div class="hp-sayi" id="dusman-hp-sayi">--- / ---</div>
         </div>
 
-        <div class="holo-alan">
-            <div class="holo-dusman"><div class="shape-d"></div></div>
-            <div class="holo-oyuncu"><div class="shape-p"></div></div>
+        <!-- Ortada aktif kart gösterimi -->
+        <div class="aktif-kart-alani">
+            <div class="aktif-kart-label" id="dusman-aktif-label">DÜŞMAN KARTI</div>
+            <div class="aktif-kart-goster" id="dusman-aktif-kart"><img id="dusman-aktif-img" src="" alt=""></div>
+            <div style="height:14px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <div style="width:1px; height:14px; background:#2a2c35;"></div>
+            </div>
+            <div class="aktif-kart-goster" id="oyuncu-aktif-kart"><img id="oyuncu-aktif-img" src="" alt=""></div>
+            <div class="aktif-kart-label" id="oyuncu-aktif-label">SENİN KARTIN</div>
         </div>
 
+        <!-- Oyuncu HUD -->
         <div class="hud-kutu hud-oyuncu">
-            <div class="hud-isim" id="savas-oyuncu-isim">SEN</div>
+            <div class="hud-isim">
+                <span id="savas-oyuncu-isim">SEN</span>
+                <div class="ordu-kutu-oyuncu" id="oyuncu-mini-ordu"></div>
+            </div>
             <div class="hp-track"><div class="hp-dolum" id="oyuncu-hp-bar" style="width:100%"></div></div>
             <div class="hp-sayi" id="oyuncu-hp-sayi">--- / ---</div>
         </div>
+
     </div>
 
     <div class="savas-terminal">
+        <!-- Log -->
         <div class="savas-log" id="savas-log"></div>
-        <div class="aksiyon-grid">
-            <button class="btn-aksiyon saldiri" id="btn-saldiri"  onclick="aksiyonCalistir('saldiri')">⚡ SALDIRI</button>
-            <button class="btn-aksiyon ozel"    id="btn-ozel"     onclick="aksiyonCalistir('ozel')">💥 AŞIRI YÜK</button>
-            <button class="btn-aksiyon"         id="btn-savunma"  onclick="aksiyonCalistir('savunma')">🛡 SAVUNMA</button>
-            <button class="btn-aksiyon kacis"   id="btn-kacis"    onclick="aksiyonCalistir('kacis')">↩ KAÇIŞ</button>
+
+        <!-- Sağ: kart seçimi + aksiyonlar -->
+        <div class="savas-sag">
+            <!-- Kart sırası -->
+            <div class="kart-sirasi" id="kart-sirasi"></div>
+
+            <!-- Aksiyon butonları -->
+            <div class="aksiyon-grid">
+                <button class="btn-aksiyon saldiri" id="btn-saldiri" onclick="aksiyonCalistir('saldiri')">
+                    ⚡ SALDIRI
+                    <span class="aksiyon-aciklama">Aktif kart gücü</span>
+                </button>
+                <button class="btn-aksiyon ozel" id="btn-ozel" onclick="aksiyonCalistir('ozel')">
+                    💥 YETENEK
+                    <span class="aksiyon-aciklama" id="ozel-aciklama">Özel güç</span>
+                </button>
+                <button class="btn-aksiyon savunma" id="btn-savunma" onclick="aksiyonCalistir('savunma')">
+                    🛡 SAVUNMA
+                    <span class="aksiyon-aciklama">%60 hasar azalt</span>
+                </button>
+                <button class="btn-aksiyon kacis" id="btn-kacis" onclick="aksiyonCalistir('kacis')">
+                    ↩ KAÇIŞ
+                    <span class="aksiyon-aciklama">Teslim ol</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Firebase init from app.js -->
+<!-- Firebase init -->
 <script type="module" src="app.js"></script>
 
 <script type="module">
@@ -540,34 +820,67 @@ import {
     collection, getDocs, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-/* ─────────────────────────────────────────────
+/* ══════════════════════════════════════════
    STATE
-───────────────────────────────────────────── */
+══════════════════════════════════════════ */
 let oyuncu         = { isim:"", puan:0, envanter:[], id:"" };
 let canavarHavuzu  = { yaygin:[], nadir:[], destansi:[], efsanevi:[], mitik:[] };
 const nadirlikPuanlari = { "yaygın":2,"nadir":5,"destansı":10,"efsanevi":20,"mitik":50 };
 let butonKilitli   = false;
 let sonDocSnapData = null;
 
-/* ─────────────────────────────────────────────
-   SCHOOL SCHEDULE — fixed to match your image
-   Key fix: default outside any slot = "teneffus"
-   so game works after school & on weekends.
-───────────────────────────────────────────── */
+// Ordu seçimi
+let seciliOrdu = []; // max 5 kart
+
+// Savaş durumu
+let savas = {};
+
+/* ══════════════════════════════════════════
+   KART GÜÇLERI — nadirliğe göre
+══════════════════════════════════════════ */
+const NADIR_HP  = { "yaygın":120,"nadir":200,"destansı":320,"efsanevi":480,"mitik":700 };
+const NADIR_GUC = { "yaygın":18, "nadir":32, "destansı":55, "efsanevi":85, "mitik":130 };
+const NADIR_OZL = { "yaygın":30, "nadir":55, "destansı":90, "efsanevi":140,"mitik":210 };
+
+// Her kart için nadirliğe göre özel yetenek adları
+const YETENEKLER = {
+    "yaygın":   { ad:"Temel Vuruş",    katsayi:1.5,  tip:"normal" },
+    "nadir":    { ad:"Güç Dalgası",    katsayi:1.8,  tip:"normal" },
+    "destansı": { ad:"Enerji Patlaması",katsayi:2.2, tip:"aoe"    },
+    "efsanevi": { ad:"Nükleer Darbe",  katsayi:2.8,  tip:"armor"  },
+    "mitik":    { ad:"ÖLÜM DOKUNUŞU",  katsayi:3.5,  tip:"drain"  },
+};
+
+function kartHP(c)  { return NADIR_HP[ (c.nadirlik||"yaygın").toLowerCase() ] || 120; }
+function kartGuc(c) { return NADIR_GUC[(c.nadirlik||"yaygın").toLowerCase() ] || 18; }
+function kartOzel(c){ return NADIR_OZL[(c.nadirlik||"yaygın").toLowerCase() ] || 30; }
+function kartYetenek(c) { return YETENEKLER[(c.nadirlik||"yaygın").toLowerCase()] || YETENEKLER["yaygın"]; }
+
+function ordununToplam(kart_listesi, tip) {
+    return kart_listesi.reduce((s,c) => {
+        if (tip === "hp")  return s + kartHP(c);
+        if (tip === "guc") return s + kartGuc(c);
+        return s;
+    }, 0);
+}
+
+/* ══════════════════════════════════════════
+   OKUL PROGRAMI (DÜZELTME: ders dışı = teneffüs)
+══════════════════════════════════════════ */
 const ZAMAN_CIZELGESI = [
-    { bas:495, bit:570, tur:"ders",     ad:"1-2. Ders"  },  // 08:15–09:30
-    { bas:570, bit:590, tur:"teneffus", ad:"Teneffüs"   },  // 09:30–09:50
-    { bas:590, bit:665, tur:"ders",     ad:"3-4. Ders"  },  // 09:50–11:05
-    { bas:665, bit:675, tur:"teneffus", ad:"Teneffüs"   },  // 11:05–11:15
-    { bas:675, bit:715, tur:"ders",     ad:"5. Ders"    },  // 11:15–11:55
-    { bas:715, bit:725, tur:"teneffus", ad:"Kısa Ara"   },  // 11:55–12:05
-    { bas:725, bit:765, tur:"ders",     ad:"6. Ders"    },  // 12:05–12:45
-    { bas:765, bit:775, tur:"teneffus", ad:"Teneffüs"   },  // 12:45–12:55
-    { bas:775, bit:815, tur:"ders",     ad:"7. Ders"    },  // 12:55–13:35
-    { bas:815, bit:855, tur:"teneffus", ad:"Öğle Arası" },  // 13:35–14:15
-    { bas:855, bit:895, tur:"ders",     ad:"8. Ders"    },  // 14:15–14:55
-    { bas:895, bit:900, tur:"teneffus", ad:"Kısa Ara"   },  // 14:55–15:00
-    { bas:900, bit:940, tur:"ders",     ad:"9. Ders"    },  // 15:00–15:40
+    { bas:495, bit:570, tur:"ders",     ad:"1-2. Ders"  },
+    { bas:570, bit:590, tur:"teneffus", ad:"Teneffüs"   },
+    { bas:590, bit:665, tur:"ders",     ad:"3-4. Ders"  },
+    { bas:665, bit:675, tur:"teneffus", ad:"Teneffüs"   },
+    { bas:675, bit:715, tur:"ders",     ad:"5. Ders"    },
+    { bas:715, bit:725, tur:"teneffus", ad:"Kısa Ara"   },
+    { bas:725, bit:765, tur:"ders",     ad:"6. Ders"    },
+    { bas:765, bit:775, tur:"teneffus", ad:"Teneffüs"   },
+    { bas:775, bit:815, tur:"ders",     ad:"7. Ders"    },
+    { bas:815, bit:855, tur:"teneffus", ad:"Öğle Arası" },
+    { bas:855, bit:895, tur:"ders",     ad:"8. Ders"    },
+    { bas:895, bit:900, tur:"teneffus", ad:"Kısa Ara"   },
+    { bas:900, bit:940, tur:"ders",     ad:"9. Ders"    },
 ];
 
 function zamanDurumuKontrol() {
@@ -575,13 +888,13 @@ function zamanDurumuKontrol() {
     for (const z of ZAMAN_CIZELGESI) {
         if (t >= z.bas && t < z.bit) return z;
     }
-    // ← BUG FIX: was returning "ders" here, blocking the game all evening/weekend
+    // ✅ HATA DÜZELTİLDİ: Ders saati dışı = Serbest Vakit (teneffüs gibi davranır)
     return { tur:"teneffus", ad:"Serbest Vakit" };
 }
 
-/* ─────────────────────────────────────────────
-   DEVICE FINGERPRINT — stops spamming accounts
-───────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   CİHAZ PARMAK İZİ
+══════════════════════════════════════════ */
 function parmakIziAl() {
     const raw = [navigator.userAgent, navigator.language, screen.colorDepth,
                  screen.width+"x"+screen.height, navigator.platform,
@@ -591,26 +904,19 @@ function parmakIziAl() {
     return "fp_" + Math.abs(h).toString(36);
 }
 
-/* ─────────────────────────────────────────────
+/* ══════════════════════════════════════════
    INIT
-───────────────────────────────────────────── */
+══════════════════════════════════════════ */
 window.onload = function() {
     const muhur = localStorage.getItem("cihazMuhru");
     if (muhur) {
         const el = document.getElementById("kullanici-adi");
         if (el) { el.value = muhur; el.disabled = true; }
         const d = document.getElementById("giris-durum");
-        if (d) { d.innerText = "🔒 Cihaz Mührü Aktif. Yeni Hesap Açılamaz."; d.style.color = "var(--vurgu-renk)"; }
+        if (d) { d.innerText = "🔒 Cihaz Mührü Aktif."; d.style.color = "var(--vurgu-renk)"; }
     }
 };
 
-window.muhruSifirla = function() {
-    localStorage.removeItem("cihazMuhru");
-    localStorage.removeItem("oyuncuID");
-    location.reload();
-};
-
-// Wait for app.js to expose window.db
 let dbKontrol = setInterval(() => {
     if (!window.db) return;
     clearInterval(dbKontrol);
@@ -618,9 +924,9 @@ let dbKontrol = setInterval(() => {
     baslatRadar();
 }, 500);
 
-/* ─────────────────────────────────────────────
-   LOAD MONSTERS
-───────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   CANAVARLAR
+══════════════════════════════════════════ */
 async function canavarlariCek() {
     try {
         const snap = await getDocs(collection(window.db, "canavarlar"));
@@ -628,7 +934,6 @@ async function canavarlariCek() {
         snap.forEach(d => {
             const c = d.data(); if (!c.isim) return; sayi++;
             const k = c.nadirlik ? c.nadirlik.toLowerCase() : "yaygın";
-            // Map Turkish rarity names to bucket keys
             const MAP = { "yaygın":"yaygin","nadir":"nadir","destansı":"destansi","efsanevi":"efsanevi","mitik":"mitik" };
             const bucket = canavarHavuzu[MAP[k] || "yaygin"];
             bucket.push(c);
@@ -642,9 +947,9 @@ async function canavarlariCek() {
     }
 }
 
-/* ─────────────────────────────────────────────
-   LOGIN / REGISTER
-───────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   GİRİŞ
+══════════════════════════════════════════ */
 window.hesapOlustur = async function() {
     const adi  = document.getElementById("kullanici-adi").value.trim().toLowerCase();
     const pin  = document.getElementById("kullanici-pin").value.trim();
@@ -668,9 +973,7 @@ window.hesapOlustur = async function() {
             oyuncu = { ...data, id: snap.id };
             if (!oyuncu.envanter) oyuncu.envanter = [];
         } else {
-            // Anti-spam: device seal
             if (muhur && muhur !== adi) { dEl.innerText = "Bu cihaz başka bir hesaba mühürlü!"; return; }
-            // Anti-spam: fingerprint check
             const allSnap = await getDocs(collection(window.db, "players"));
             let fpVar = false;
             allSnap.forEach(d => { if (d.data().parmakIzi === fp) fpVar = true; });
@@ -690,9 +993,9 @@ window.hesapOlustur = async function() {
     }
 };
 
-/* ─────────────────────────────────────────────
-   UI UPDATE
-───────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   ARAYÜZ GÜNCELLE
+══════════════════════════════════════════ */
 function arayuzuGuncelle() {
     const isimEl = document.getElementById("ekran-isim");
     if (isimEl) isimEl.innerText = oyuncu.isim.toUpperCase();
@@ -715,22 +1018,30 @@ function arayuzuGuncelle() {
     const SIRA = { "mitik":5,"efsanevi":4,"destansı":3,"destansi":3,"nadir":2,"yaygın":1,"yaygin":1 };
     [...oyuncu.envanter]
         .sort((a,b) => (SIRA[(b.nadirlik||"yaygın").toLowerCase()]||0) - (SIRA[(a.nadirlik||"yaygın").toLowerCase()]||0))
-        .forEach(c => {
+        .forEach((c, i) => {
+            const orduda = seciliOrdu.includes(c);
             const kart = document.createElement("div");
-            kart.className = "canavar-kart";
+            kart.className = "canavar-kart" + (orduda ? " secili-kart" : "");
             kart.style.borderColor = c.renk || "#333";
             kart.style.setProperty("--kart-renk", c.renk || "#333");
+            kart.dataset.index = i;
             kart.innerHTML = `
+                <span class="secim-rozeti">✓ ORDUDA</span>
                 <div class="canavar-resim"><img src="${c.resim || ''}" alt="${c.isim}" loading="lazy"></div>
                 <div class="canavar-isim" style="color:${c.renk || '#fff'}">${c.isim.replace(/_/g, " ")}</div>
-                <div class="nadir-etiket" style="color:${c.renk || '#fff'}; border:1px solid ${c.renk || '#444'}">${(c.nadirlik || "Yaygın").toUpperCase()}</div>`;
+                <div class="nadir-etiket" style="color:${c.renk || '#fff'}; border:1px solid ${c.renk || '#444'}">${(c.nadirlik || "Yaygın").toUpperCase()}</div>
+                <div class="kart-guc">HP:${kartHP(c)} · GÜÇ:${kartGuc(c)}</div>`;
             grid.appendChild(kart);
         });
+
+    const sayac = document.getElementById("secim-sayac");
+    if (sayac && seciliOrdu.length > 0) sayac.innerText = `(${seciliOrdu.length} seçili)`;
+    else if (sayac) sayac.innerText = "";
 }
 
-/* ─────────────────────────────────────────────
+/* ══════════════════════════════════════════
    RADAR
-───────────────────────────────────────────── */
+══════════════════════════════════════════ */
 function radarArayuzunuGuncelle(data) {
     const radar    = document.getElementById("radar-durum");
     const avci     = document.getElementById("avci-modu");
@@ -755,14 +1066,12 @@ function radarArayuzunuGuncelle(data) {
 
     if (data && data.durum === "aktif") {
         if (data.hedefOyuncuID === benimID) {
-            // I'm the carrier
             radar.style.display    = "none";
             avci.style.display     = "none";
             tasiyici.style.display = "block";
             const k = document.getElementById("benim-kodum");
             if (k) k.innerText = data.aktifKod;
         } else {
-            // Someone else is the target — enable hunting
             radar.className = "radar-uyari radar-hedef";
             radar.innerText = `⚠ HEDEF TESPİT EDİLDİ: ${data.hedefIsim.toUpperCase()} ⚠`;
             radar.style.display    = "block";
@@ -773,18 +1082,16 @@ function radarArayuzunuGuncelle(data) {
             if (savasBtn) savasBtn.disabled = false;
         }
     } else {
-        // No active carrier or code already used
         radar.style.display    = "block";
         tasiyici.style.display = "none";
         avci.style.display     = "block";
         if (kodInput) kodInput.disabled = true;
         if (cevirBtn) cevirBtn.disabled = true;
         if (savasBtn) savasBtn.disabled = true;
-        // Show teneffus/bekle depending on time
         radar.className = zaman.tur === "teneffus" ? "radar-uyari radar-teneffus" : "radar-uyari radar-bekle";
         radar.innerText = zaman.tur === "teneffus"
-            ? `📶 TENEFFÜS VAKTİ! SİNYAL BEKLENİYOR... (${zaman.ad})`
-            : "📡 SİSTEM BEKLEMEDE VEYA KAPALI";
+            ? `📶 TENEFFÜS! SİNYAL BEKLENİYOR... (${zaman.ad})`
+            : "📡 SİSTEM BEKLEMEDE";
     }
 }
 
@@ -793,13 +1100,12 @@ function baslatRadar() {
         sonDocSnapData = snap.exists() ? snap.data() : null;
         radarArayuzunuGuncelle(sonDocSnapData);
     });
-    // Re-evaluate time every 10 s so ders/teneffus transitions fire automatically
     setInterval(() => radarArayuzunuGuncelle(sonDocSnapData), 10000);
 }
 
-/* ─────────────────────────────────────────────
-   GACHA — CODE CRACK
-───────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   GACHA — KOD ÇÖZME
+══════════════════════════════════════════ */
 window.koduCozVeCevir = async function() {
     if (butonKilitli) return;
     const girilenKod = document.getElementById("hedef-kod").value.trim().toUpperCase();
@@ -817,19 +1123,16 @@ window.koduCozVeCevir = async function() {
         if (gameData && gameData.aktifKod === girilenKod && gameData.durum === "aktif") {
             await updateDoc(doc(window.db, "gameState", "carrier"), { durum:"kullanildi" });
 
-            // Show gacha screen
             document.getElementById("gacha-ekrani").style.display = "flex";
             document.getElementById("gacha-bekleme").style.display = "flex";
             document.getElementById("gacha-sonuc").style.display   = "none";
 
-            // Animated loading text
             const txts = ["SİNYAL YAKALANDI...","VERİ ŞİFRESİ ÇÖZÜLÜYOR...","GEN KODU TARANIYOR...","PROTOKOL DOĞRULANDI..."];
             let ti = 0;
             const tiv = setInterval(() => {
                 document.getElementById("gacha-loading-txt").innerText = txts[ti++ % txts.length];
             }, 550);
 
-            // Pick monster (same odds as original)
             let havuz = canavarHavuzu.yaygin;
             const sans = Math.random() * 100;
             if      (sans <= 0.1 && canavarHavuzu.mitik.length)    havuz = canavarHavuzu.mitik;
@@ -857,7 +1160,6 @@ window.koduCozVeCevir = async function() {
                 nEl.innerText        = (secilen.nadirlik || "YAYGIN").toUpperCase();
                 nEl.style.background = renk; nEl.style.color = "#000";
 
-                // Force re-animation
                 const sonuc = document.getElementById("gacha-sonuc");
                 sonuc.style.animation = "none"; sonuc.offsetHeight; sonuc.style.animation = "";
                 sonuc.style.display = "block";
@@ -878,9 +1180,9 @@ window.koduCozVeCevir = async function() {
 
 window.gachaKapat = () => { document.getElementById("gacha-ekrani").style.display = "none"; };
 
-/* ─────────────────────────────────────────────
-   LEADERBOARD
-───────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   LİDERLİK
+══════════════════════════════════════════ */
 window.liderlikAc = async function() {
     document.getElementById("liderlik-ekrani").style.display = "flex";
     const liste = document.getElementById("liderlik-listesi");
@@ -913,35 +1215,251 @@ window.liderlikAc = async function() {
 
 window.liderlikKapat = () => { document.getElementById("liderlik-ekrani").style.display = "none"; };
 
-/* ─────────────────────────────────────────────
-   BATTLE SYSTEM
-───────────────────────────────────────────── */
-let savas = {};
-
-function savasHp(env)  { return 800 + (env||[]).reduce((s,c)=>(s+(nadirlikPuanlari[(c.nadirlik||"yaygın").toLowerCase()]||2)*10),0); }
-function savasGuc(env) { return 100 + (env||[]).reduce((s,c)=>(s+(nadirlikPuanlari[(c.nadirlik||"yaygın").toLowerCase()]||2)*2),0); }
-
-window.savasBaslat = async function() {
+/* ══════════════════════════════════════════
+   ORDU KURMA EKRANI
+══════════════════════════════════════════ */
+window.orduKurEkraniniAc = function() {
     if (!sonDocSnapData || sonDocSnapData.durum !== "aktif") return;
+    seciliOrdu = [];
+    document.getElementById("ordu-ekrani").style.display = "flex";
+    orduEkraniniRender();
+};
+
+window.orduEkraniniKapat = function() {
+    document.getElementById("ordu-ekrani").style.display = "none";
+    seciliOrdu = [];
+    arayuzuGuncelle();
+};
+
+function orduEkraniniRender() {
+    // Slotları render et
+    const slotlar = document.getElementById("ordu-slotlar");
+    slotlar.innerHTML = "";
+    for (let i = 0; i < 5; i++) {
+        const slot = document.createElement("div");
+        slot.className = "ordu-slot" + (seciliOrdu[i] ? " dolu" : "");
+        if (seciliOrdu[i]) {
+            const c = seciliOrdu[i];
+            slot.style.borderColor = c.renk || "#555";
+            slot.dataset.index = i;
+            slot.innerHTML = `
+                <img src="${c.resim||""}" alt="${c.isim}">
+                <div class="ordu-slot-isim" style="color:${c.renk||'#fff'}">${c.isim.replace(/_/g," ").substring(0,10)}</div>
+                <div class="ordu-slot-guc">HP:${kartHP(c)}</div>
+                <button class="ordu-sil-btn" onclick="ordudan_cikar(${i})">✕</button>`;
+        } else {
+            slot.innerHTML = `<div style="font-size:1.5rem;color:#2a2c35">+</div><div style="font-size:.6rem">EKLE</div>`;
+        }
+        slotlar.appendChild(slot);
+    }
+
+    // Güç özeti
+    const topHP  = ordununToplam(seciliOrdu, "hp");
+    const topGuc = ordununToplam(seciliOrdu, "guc");
+    document.getElementById("ordu-hp").innerText  = topHP  || "---";
+    document.getElementById("ordu-guc").innerText = topGuc || "---";
+
+    // Kart ızgarası
+    const grid = document.getElementById("ordu-kart-grid");
+    grid.innerHTML = "";
+    const SIRA = { "mitik":5,"efsanevi":4,"destansı":3,"destansi":3,"nadir":2,"yaygın":1,"yaygin":1 };
+    [...oyuncu.envanter]
+        .sort((a,b) => (SIRA[(b.nadirlik||"yaygın").toLowerCase()]||0) - (SIRA[(a.nadirlik||"yaygın").toLowerCase()]||0))
+        .forEach((c, i) => {
+            const orduda = seciliOrdu.includes(c);
+            const kart = document.createElement("div");
+            kart.className = "ordu-kart" + (orduda ? " orduda" : "");
+            kart.style.setProperty("--kart-renk", c.renk || "#333");
+            const yet = kartYetenek(c);
+            kart.innerHTML = `
+                <img src="${c.resim||''}" alt="${c.isim}">
+                <div class="ordu-kart-isim" style="color:${c.renk||'#fff'}">${c.isim.replace(/_/g," ")}</div>
+                <div class="ordu-kart-nadir" style="color:${c.renk||'#fff'}; border:1px solid ${c.renk||'#444'}">${(c.nadirlik||"Yaygın").toUpperCase()}</div>
+                <div class="ordu-kart-guc">⚔${kartGuc(c)} ❤${kartHP(c)}</div>
+                <div style="font-size:.56rem;color:#666;margin-top:3px">${yet.ad}</div>`;
+            if (!orduda) {
+                kart.onclick = () => orduya_ekle(c);
+            }
+            grid.appendChild(kart);
+        });
+
+    // Savaş butonu
+    const btn = document.getElementById("btn-ordu-savas");
+    btn.disabled = seciliOrdu.length === 0;
+}
+
+window.orduya_ekle = function(c) {
+    if (seciliOrdu.length >= 5) {
+        // Titreşim efekti — max doldu
+        const slotlar = document.getElementById("ordu-slotlar");
+        slotlar.style.animation = "none";
+        slotlar.offsetHeight;
+        return;
+    }
+    if (seciliOrdu.includes(c)) return;
+    seciliOrdu.push(c);
+    orduEkraniniRender();
+};
+
+window.ordudan_cikar = function(index) {
+    seciliOrdu.splice(index, 1);
+    orduEkraniniRender();
+};
+
+/* ══════════════════════════════════════════
+   BATTLE SYSTEM — ORDU TABANLI
+══════════════════════════════════════════ */
+
+// Savaş state
+let savasOyuncuOrdu   = []; // { kart, hp, maxHp, guc, ozelKalan, kullanildi }
+let savasDusmanOrdu   = [];
+let savasOyuncuIndex  = 0; // aktif kart indexi
+let savasDusmanIndex  = 0;
+let savunmaAktif      = false;
+let siraSende         = true;
+let savasBitti        = false;
+
+window.orduylaSavasBaslat = async function() {
+    if (!sonDocSnapData || sonDocSnapData.durum !== "aktif") return;
+    if (seciliOrdu.length === 0) return;
+
+    document.getElementById("ordu-ekrani").style.display = "none";
+
     try {
-        const hs = await getDoc(doc(window.db,"players",sonDocSnapData.hedefOyuncuID));
+        const hs = await getDoc(doc(window.db, "players", sonDocSnapData.hedefOyuncuID));
         if (!hs.exists()) { alert("Hedef bulunamadı!"); return; }
         const hd = hs.data();
-        savas = {
-            oyuncu:{ isim:oyuncu.isim.toUpperCase(), maxHp:savasHp(oyuncu.envanter), hp:savasHp(oyuncu.envanter), saldiri:savasGuc(oyuncu.envanter), savunmaAktif:false, ozelKalan:3 },
-            dusman:{ isim:hd.isim.toUpperCase(),     maxHp:savasHp(hd.envanter),     hp:savasHp(hd.envanter),     saldiri:savasGuc(hd.envanter) },
-            bitti:false, siraSende:true
-        };
-        document.getElementById("savas-oyuncu-isim").innerText = savas.oyuncu.isim;
-        document.getElementById("dusman-isim").innerText       = `${savas.dusman.isim} [TAŞIYICI]`;
-        document.getElementById("savas-ekrani").style.display  = "flex";
+
+        // Oyuncu ordusu
+        savasOyuncuOrdu = seciliOrdu.map(c => ({
+            kart:c, hp:kartHP(c), maxHp:kartHP(c),
+            guc:kartGuc(c), ozelGuc:kartOzel(c), ozelKalan:2,
+            kullanildi:false
+        }));
+
+        // Düşman ordusu — envanterinden rastgele en fazla 5
+        const dEnv = hd.envanter || [];
+        const dSecilen = dEnv.length > 0
+            ? [...dEnv].sort(()=>Math.random()-.5).slice(0, Math.min(5, dEnv.length))
+            : [{ isim:"Bilinmez", nadirlik:"yaygın", resim:"", renk:"#ff3366" }];
+        savasDusmanOrdu = dSecilen.map(c => ({
+            kart:c, hp:kartHP(c), maxHp:kartHP(c),
+            guc:kartGuc(c), ozelGuc:kartOzel(c), ozelKalan:2,
+            kullanildi:false
+        }));
+
+        savasOyuncuIndex = 0;
+        savasDusmanIndex = 0;
+        savunmaAktif     = false;
+        siraSende        = true;
+        savasBitti       = false;
+
+        // Ekranı aç
+        document.getElementById("savas-ekrani").style.display = "flex";
         savasLogTemizle();
-        savasYaz(">> BAĞLANTI KURULDU","sistem");
-        savasYaz(`>> HEDEF: ${savas.dusman.isim}`,"sistem");
-        savasYaz(">> SAVAŞ BAŞLIYOR...","sistem");
-        savasHpGuncelle(); savasButonlar(true);
+        savasYaz(">> BAĞLANTI KURULDU", "sistem");
+        savasYaz(`>> RAKIP: ${hd.isim.toUpperCase()} [${savasDusmanOrdu.length} KART]`, "sistem");
+        savasYaz(">> ORDU SAVAŞI BAŞLIYOR...", "sistem");
+        savasYaz(`>> Senin ordu: ${savasOyuncuOrdu.length} kart`, "sistem");
+
+        savasHudGuncelle();
+        savasKartSirasiRender();
+        savasKartlariniGuncelle();
+        savasButonlar(true);
+        savasOzelAciklamaGuncelle();
+
     } catch(e) { console.error(e); alert("Savaş başlatılamadı!"); }
 };
+
+// Aktif kartlar
+function aktifOyuncu() { return savasOyuncuOrdu[savasOyuncuIndex]; }
+function aktifDusman()  { return savasDusmanOrdu[savasDusmanIndex]; }
+
+// HUD güncelle — tüm kartların toplam HP'si
+function savasHudGuncelle() {
+    const oTopHP  = savasOyuncuOrdu.reduce((s,k)=>s+k.maxHp,0);
+    const oMevcut = savasOyuncuOrdu.reduce((s,k)=>s+Math.max(0,k.hp),0);
+    const dTopHP  = savasDusmanOrdu.reduce((s,k)=>s+k.maxHp,0);
+    const dMevcut = savasDusmanOrdu.reduce((s,k)=>s+Math.max(0,k.hp),0);
+
+    document.getElementById("oyuncu-hp-bar").style.width = Math.max(0, oMevcut/oTopHP*100)+"%";
+    document.getElementById("oyuncu-hp-sayi").innerText  = `${Math.floor(oMevcut)} / ${oTopHP}`;
+    document.getElementById("dusman-hp-bar").style.width = Math.max(0, dMevcut/dTopHP*100)+"%";
+    document.getElementById("dusman-hp-sayi").innerText  = `${Math.floor(dMevcut)} / ${dTopHP}`;
+
+    document.getElementById("savas-oyuncu-isim").innerText = oyuncu.isim.toUpperCase();
+    document.getElementById("dusman-isim").innerText       = (sonDocSnapData?.hedefIsim||"DÜŞMAN").toUpperCase();
+
+    // Mini ordu göster
+    miniOrduRender("oyuncu-mini-ordu", savasOyuncuOrdu, savasOyuncuIndex, false);
+    miniOrduRender("dusman-mini-ordu",  savasDusmanOrdu,  savasDusmanIndex,  true);
+
+    // Aktif kart göstergesi
+    const ok = aktifOyuncu();
+    const dk = aktifDusman();
+    if (ok) {
+        document.getElementById("oyuncu-aktif-img").src    = ok.kart.resim || "";
+        document.getElementById("oyuncu-aktif-label").innerText = ok.kart.isim.replace(/_/g," ").substring(0,12);
+    }
+    if (dk) {
+        document.getElementById("dusman-aktif-img").src    = dk.kart.resim || "";
+        document.getElementById("dusman-aktif-label").innerText = dk.kart.isim.replace(/_/g," ").substring(0,12);
+    }
+}
+
+function miniOrduRender(containerId, ordu, aktifIndex, dusman) {
+    const cont = document.getElementById(containerId);
+    if (!cont) return;
+    cont.innerHTML = "";
+    ordu.forEach((k, i) => {
+        const div = document.createElement("div");
+        div.className = "mini-kart" +
+            (k.hp <= 0 ? " geri-donmus" : "") +
+            (i === aktifIndex && k.hp > 0 ? (dusman ? " aktif-mini-dusman" : " aktif-mini") : "");
+        div.innerHTML = `<img src="${k.kart.resim||""}" alt="">`;
+        cont.appendChild(div);
+    });
+}
+
+// Kart sırası (oyuncu için altta)
+function savasKartSirasiRender() {
+    const cont = document.getElementById("kart-sirasi");
+    cont.innerHTML = "";
+    savasOyuncuOrdu.forEach((k, i) => {
+        const slot = document.createElement("div");
+        slot.className = "kart-secim-slot" +
+            (i === savasOyuncuIndex && k.hp > 0 ? " aktif-secim" : "") +
+            (k.hp <= 0 ? " kullanildi" : "");
+        slot.innerHTML = `<img src="${k.kart.resim||""}" alt=""><div class="slot-guc">${kartGuc(k.kart)}</div>`;
+        if (k.hp > 0 && i !== savasOyuncuIndex) {
+            slot.onclick = () => kartDegistir(i);
+        }
+        cont.appendChild(slot);
+    });
+}
+
+function kartDegistir(i) {
+    if (!siraSende || savasBitti) return;
+    if (savasOyuncuOrdu[i].hp <= 0) return;
+    savasOyuncuIndex = i;
+    savasKartSirasiRender();
+    savasHudGuncelle();
+    savasOzelAciklamaGuncelle();
+    savasYaz(`>> Kart değiştirildi: ${savasOyuncuOrdu[i].kart.isim.replace(/_/g," ")}`, "sistem");
+}
+
+function savasKartlariniGuncelle() {
+    savasHudGuncelle();
+    savasKartSirasiRender();
+}
+
+function savasOzelAciklamaGuncelle() {
+    const ok = aktifOyuncu();
+    if (!ok) return;
+    const yet = kartYetenek(ok.kart);
+    const el = document.getElementById("ozel-aciklama");
+    if (el) el.innerText = `${yet.ad} (${ok.ozelKalan})`;
+}
 
 function savasLogTemizle() { document.getElementById("savas-log").innerHTML = ""; }
 
@@ -952,116 +1470,282 @@ function savasYaz(msg, tur="") {
     log.appendChild(e); log.scrollTop = log.scrollHeight;
 }
 
-function savasHpGuncelle() {
-    document.getElementById("oyuncu-hp-bar").style.width  = Math.max(0, savas.oyuncu.hp/savas.oyuncu.maxHp*100)+"%";
-    document.getElementById("oyuncu-hp-sayi").innerText   = `${Math.max(0,Math.floor(savas.oyuncu.hp))} / ${savas.oyuncu.maxHp}`;
-    document.getElementById("dusman-hp-bar").style.width  = Math.max(0, savas.dusman.hp/savas.dusman.maxHp*100)+"%";
-    document.getElementById("dusman-hp-sayi").innerText   = `${Math.max(0,Math.floor(savas.dusman.hp))} / ${savas.dusman.maxHp}`;
-}
-
 function savasButonlar(ac) {
     ["btn-saldiri","btn-ozel","btn-savunma","btn-kacis"].forEach(id => {
         const el = document.getElementById(id); if (el) el.disabled = !ac;
     });
 }
 
-function hasarHesapla(baz, hedefSavunuyor) {
-    let h = baz * (0.8 + Math.random() * 0.4);
-    if (hedefSavunuyor) h *= 0.35;
-    const kritik = Math.random() < 0.12; if (kritik) h *= 1.8;
-    return { hasar:Math.floor(h), kritik };
+// Hasar hesapla
+function hasarHesapla(bazGuc, hedefSavunuyor, ozelCarpan=1) {
+    let h = bazGuc * ozelCarpan * (0.85 + Math.random() * 0.3);
+    if (hedefSavunuyor) h *= 0.4;
+    const kritik = Math.random() < 0.13;
+    if (kritik) h *= 1.9;
+    return { hasar: Math.floor(h), kritik };
 }
 
+// Ekran sarsıntısı
 function sarsil() {
     const el = document.getElementById("savas-ekrani");
+    el.classList.remove("sarsil"); void el.offsetWidth;
     el.classList.add("sarsil");
-    setTimeout(() => el.classList.remove("sarsil"), 350);
+    setTimeout(()=>el.classList.remove("sarsil"), 350);
 }
 
-async function savasKazanildi() {
-    savas.bitti = true; savasButonlar(false);
-    savasYaz(">> ZAFER! RAKİP ELENDİ.","kazan");
-    setTimeout(async () => {
-        document.getElementById("savas-ekrani").style.display = "none";
-        const tumHavuz = Object.values(canavarHavuzu).flat();
-        if (!tumHavuz.length) return;
-        const odul = tumHavuz[Math.floor(Math.random() * tumHavuz.length)];
-        oyuncu.envanter.push(odul);
-        try { await updateDoc(doc(window.db,"players",oyuncu.id),{envanter:oyuncu.envanter}); } catch(e){}
-        // Re-use gacha reveal for the reward
-        const renk = odul.renk || "#00ffcc";
-        const cerceve = document.getElementById("gacha-resim-cerceve");
-        cerceve.style.borderColor = renk; cerceve.style.boxShadow = `0 0 50px ${renk}55`;
-        document.getElementById("yeni-canavar-img").src        = odul.resim || "";
-        document.getElementById("yeni-canavar-isim").innerText = odul.isim.replace(/_/g," ");
-        const nEl = document.getElementById("yeni-canavar-nadir");
-        nEl.innerText = (odul.nadirlik||"YAYGIN").toUpperCase(); nEl.style.background=renk; nEl.style.color="#000";
-        document.getElementById("gacha-bekleme").style.display = "none";
-        const sonuc = document.getElementById("gacha-sonuc");
-        sonuc.style.animation="none"; sonuc.offsetHeight; sonuc.style.animation=""; sonuc.style.display="block";
-        document.getElementById("gacha-ekrani").style.display = "flex";
-        arayuzuGuncelle();
-    }, 1600);
+// Uçan hasar sayacı
+function hasarSayacGoster(deger, tip, hedefDusman) {
+    const arena = document.getElementById("savas-arena");
+    const div = document.createElement("div");
+    div.className = `hasar-sayac ${tip}`;
+    div.innerText = (tip==="kritik"?"✦ ":"") + deger;
+    div.style.left = hedefDusman ? "60%" : "30%";
+    div.style.top  = hedefDusman ? "20%" : "65%";
+    arena.appendChild(div);
+    setTimeout(()=>div.remove(), 1000);
 }
 
-function savasKaybedildi() {
-    savas.bitti = true; savasButonlar(false);
-    savasYaz(">> KRİTİK BAŞARISIZLIK. BAĞLANTI KESİLDİ.","hasar");
-    setTimeout(() => { document.getElementById("savas-ekrani").style.display = "none"; }, 2000);
+// Bir sonraki düşman kartına geç
+function dusmanSiradsKaydir() {
+    for (let i = savasDusmanIndex + 1; i < savasDusmanOrdu.length; i++) {
+        if (savasDusmanOrdu[i].hp > 0) {
+            savasDusmanIndex = i;
+            savasYaz(`>> Düşman yeni kartını çıkardı: ${savasDusmanOrdu[i].kart.isim.replace(/_/g," ")}`, "sistem");
+            return true;
+        }
+    }
+    return false; // Hepsi bitti
 }
 
+// Bir sonraki oyuncu kartına otomatik geç
+function oyuncuSiradsKaydir() {
+    for (let i = savasOyuncuIndex + 1; i < savasOyuncuOrdu.length; i++) {
+        if (savasOyuncuOrdu[i].hp > 0) {
+            savasOyuncuIndex = i;
+            savasYaz(`>> Kartın yenildi! Yeni kart: ${savasOyuncuOrdu[i].kart.isim.replace(/_/g," ")}`, "sistem");
+            return true;
+        }
+    }
+    return false;
+}
+
+// Kazanma kontrolü
+function kazanmaDurumuKontrol() {
+    const dHepsiYenildi = savasDusmanOrdu.every(k => k.hp <= 0);
+    const oHepsiYenildi = savasOyuncuOrdu.every(k => k.hp <= 0);
+    if (dHepsiYenildi) { savasKazanildi(); return true; }
+    if (oHepsiYenildi) { savasKaybedildi(); return true; }
+    return false;
+}
+
+// Düşman sırası — AI mantığı
 function dusmanSirasi() {
-    if (savas.bitti) return;
-    savasYaz(`${savas.dusman.isim} hamle yapıyor...`);
+    if (savasBitti) return;
+    const dk = aktifDusman();
+    const ok = aktifOyuncu();
+    if (!dk || !ok) return;
+
+    savasYaz(`${dk.kart.isim.replace(/_/g," ")} hamle yapıyor...`);
     savasButonlar(false);
+
     setTimeout(() => {
-        const {hasar,kritik} = hasarHesapla(savas.dusman.saldiri, savas.oyuncu.savunmaAktif);
-        savas.oyuncu.hp -= hasar;
-        let msg = `${savas.dusman.isim}: ${hasar} hasar verdi!`;
-        if (kritik) msg = "KRİTİK! " + msg;
-        if (savas.oyuncu.savunmaAktif) msg += " (Kısmen Engellendi)";
-        savasYaz(msg, "hasar");
-        savas.oyuncu.savunmaAktif = false;
-        sarsil(); savasHpGuncelle();
-        if (savas.oyuncu.hp <= 0) { savasKaybedildi(); return; }
-        savas.siraSende = true; savasButonlar(true);
+        if (savasBitti) return;
+
+        // AI karar: %20 özel yetenek kullan, %10 savunma, kalan normal saldırı
+        const rand = Math.random();
+        let hasar, kritik, logMesaji, logTur;
+
+        if (rand < 0.20 && dk.ozelKalan > 0) {
+            // Özel yetenek
+            dk.ozelKalan--;
+            const yet = kartYetenek(dk.kart);
+            const sonuc = hasarHesapla(dk.guc, savunmaAktif, yet.katsayi);
+            hasar = sonuc.hasar; kritik = sonuc.kritik;
+            ok.hp -= hasar;
+            logMesaji = `[${yet.ad.toUpperCase()}] ${dk.kart.isim.replace(/_/g," ")}: ${hasar} özel hasar!`;
+            logTur = "hasar";
+            hasarSayacGoster(hasar, kritik?"kritik":"hasar", false);
+        } else {
+            // Normal saldırı
+            const sonuc = hasarHesapla(dk.guc, savunmaAktif);
+            hasar = sonuc.hasar; kritik = sonuc.kritik;
+            ok.hp -= hasar;
+            logMesaji = kritik
+                ? `KRİTİK! ${dk.kart.isim.replace(/_/g," ")}: ${hasar} hasar!`
+                : `${dk.kart.isim.replace(/_/g," ")}: ${hasar} hasar verdi.`;
+            logTur = "hasar";
+            hasarSayacGoster(hasar, kritik?"kritik":"hasar", false);
+        }
+
+        if (savunmaAktif) logMesaji += " (Savunma ile kısmen engellendi)";
+        savunmaAktif = false;
+
+        savasYaz(logMesaji, logTur);
+        sarsil();
+        savasHudGuncelle();
+
+        // Oyuncunun aktif kartı mı düştü?
+        if (ok.hp <= 0) {
+            ok.hp = 0;
+            savasYaz(`💀 ${ok.kart.isim.replace(/_/g," ")} yenildi!`, "hasar");
+            savasKartlariniGuncelle();
+            if (!oyuncuSiradsKaydir()) {
+                // Tüm kartlar bitti
+                if (kazanmaDurumuKontrol()) return;
+            } else {
+                savasKartlariniGuncelle();
+                savasOzelAciklamaGuncelle();
+            }
+        }
+
+        if (kazanmaDurumuKontrol()) return;
+
+        siraSende = true;
+        savasButonlar(true);
         savasYaz("Komut bekleniyor...");
     }, 1400);
 }
 
+// Oyuncu aksiyonu
 window.aksiyonCalistir = function(aksiyon) {
-    if (!savas.siraSende || savas.bitti) return;
-    savas.siraSende = false; savasButonlar(false);
+    if (!siraSende || savasBitti) return;
+    const ok = aktifOyuncu();
+    const dk = aktifDusman();
+    if (!ok || !dk) return;
+
+    siraSende = false; savasButonlar(false);
 
     if (aksiyon === "saldiri") {
-        const {hasar,kritik} = hasarHesapla(savas.oyuncu.saldiri, false);
-        savas.dusman.hp -= hasar;
-        savasYaz(`[SALDIRI] ${hasar} hasar verdin.${kritik?" KRİTİK!":""}`, "vurus");
+        const {hasar, kritik} = hasarHesapla(ok.guc, false);
+        dk.hp -= hasar;
+        const msg = kritik
+            ? `KRİTİK! [SALDIRI] ${hasar} hasar verdin!`
+            : `[SALDIRI] ${hasar} hasar verdin.`;
+        savasYaz(msg, "vurus");
+        hasarSayacGoster(hasar, kritik?"kritik":"vurus", true);
 
     } else if (aksiyon === "ozel") {
-        if (savas.oyuncu.ozelKalan <= 0) {
-            savasYaz("[AŞIRI YÜK] Enerji bitti!","hasar"); savas.siraSende=true; savasButonlar(true); return;
+        if (ok.ozelKalan <= 0) {
+            savasYaz("[YETENEK] Enerji bitti! Önce normal saldır.", "hasar");
+            siraSende = true; savasButonlar(true); return;
         }
-        savas.oyuncu.ozelKalan--;
-        const {hasar,kritik} = hasarHesapla(savas.oyuncu.saldiri * 2.2, false);
-        savas.dusman.hp -= hasar;
-        savasYaz(`[AŞIRI YÜK] ${hasar} dev hasar!${kritik?" KRİTİK!":""} (Kalan: ${savas.oyuncu.ozelKalan})`, "vurus");
+        ok.ozelKalan--;
+        const yet = kartYetenek(ok.kart);
+        const {hasar, kritik} = hasarHesapla(ok.guc, false, yet.katsayi);
+        dk.hp -= hasar;
+
+        // Yeteneğe göre özel efekt
+        let efektMsj = "";
+        if (yet.tip === "drain") {
+            // HP çal
+            const calinan = Math.floor(hasar * 0.2);
+            ok.hp = Math.min(ok.maxHp, ok.hp + calinan);
+            efektMsj = ` (${calinan} HP çalındı!)`;
+        } else if (yet.tip === "armor") {
+            efektMsj = " (Zırh delici!)";
+        }
+
+        const msg = `[${yet.ad.toUpperCase()}] ${hasar} dev hasar!${kritik?" KRİTİK!":""}${efektMsj} (Kalan: ${ok.ozelKalan})`;
+        savasYaz(msg, "ozel");
+        hasarSayacGoster(hasar, "ozel", true);
+        savasOzelAciklamaGuncelle();
 
     } else if (aksiyon === "savunma") {
-        savas.oyuncu.savunmaAktif = true;
-        savasYaz("[SAVUNMA] Kalkan aktive edildi. Hasar %65 azalır.","sistem");
+        savunmaAktif = true;
+        savasYaz("[SAVUNMA] Kalkan aktive! Sonraki hasarın %60'ı engellenir.", "sistem");
 
     } else if (aksiyon === "kacis") {
-        savasYaz("Bağlantı kesildi. Korkak.","hasar");
-        savas.bitti = true;
-        setTimeout(() => { document.getElementById("savas-ekrani").style.display = "none"; }, 1200);
+        savasYaz("Bağlantı kesildi. Teslim oldun.", "hasar");
+        savasBitti = true;
+        setTimeout(() => savasEkraniKapat(), 1200);
         return;
     }
 
-    savasHpGuncelle();
-    if (savas.dusman.hp <= 0) { savasKazanildi(); return; }
+    savasHudGuncelle();
+
+    // Düşmanın aktif kartı düştü mü?
+    if (dk.hp <= 0) {
+        dk.hp = 0;
+        savasYaz(`💀 ${dk.kart.isim.replace(/_/g," ")} yenildi!`, "vurus");
+        savasKartlariniGuncelle();
+        if (!dusmanSiradsKaydir()) {
+            if (kazanmaDurumuKontrol()) return;
+        } else {
+            savasKartlariniGuncelle();
+        }
+    }
+
+    if (kazanmaDurumuKontrol()) return;
     dusmanSirasi();
 };
+
+// Savaş kazanıldı
+async function savasKazanildi() {
+    savasBitti = true; savasButonlar(false);
+    savasYaz(">> TÜM DÜŞMAN KARTLARI ELENDİ!", "kazan");
+    savasYaz(">> ZAFER! ÖDÜL HESAPLANIYOR...", "kazan");
+
+    // Savaş sonu paneli göster
+    setTimeout(async () => {
+        const panel = document.createElement("div");
+        panel.className = "savas-sonu-panel";
+        panel.innerHTML = `
+            <div class="savas-sonu-baslik" style="color:var(--vurgu-renk)">ZAFER!</div>
+            <div class="savas-sonu-altyazi">Tüm düşman kartlarını eyledin. Ödül kartın hazır.</div>
+            <button class="btn-savas-kapat" onclick="savasOdulVer()">🎁 ÖDÜLÜ AL</button>`;
+        document.getElementById("savas-ekrani").appendChild(panel);
+    }, 1200);
+}
+
+window.savasOdulVer = async function() {
+    // Ödül gacha
+    const tumHavuz = Object.values(canavarHavuzu).flat();
+    if (tumHavuz.length === 0) { savasEkraniKapat(); return; }
+    const odul = tumHavuz[Math.floor(Math.random() * tumHavuz.length)];
+    oyuncu.envanter.push(odul);
+    try { await updateDoc(doc(window.db,"players",oyuncu.id),{envanter:oyuncu.envanter}); } catch(e){}
+
+    savasEkraniKapat();
+
+    const renk = odul.renk || "#00ffcc";
+    const cerceve = document.getElementById("gacha-resim-cerceve");
+    cerceve.style.borderColor = renk; cerceve.style.boxShadow = `0 0 50px ${renk}55`;
+    document.getElementById("yeni-canavar-img").src        = odul.resim || "";
+    document.getElementById("yeni-canavar-isim").innerText = odul.isim.replace(/_/g," ");
+    document.getElementById("gacha-baslik").innerText = "⚔ SAVAŞ ÖDÜLÜ!";
+    const nEl = document.getElementById("yeni-canavar-nadir");
+    nEl.innerText = (odul.nadirlik||"YAYGIN").toUpperCase(); nEl.style.background=renk; nEl.style.color="#000";
+    document.getElementById("gacha-bekleme").style.display = "none";
+    const sonuc = document.getElementById("gacha-sonuc");
+    sonuc.style.animation="none"; sonuc.offsetHeight; sonuc.style.animation=""; sonuc.style.display="block";
+    document.getElementById("gacha-ekrani").style.display = "flex";
+    arayuzuGuncelle();
+};
+
+// Savaş kaybedildi
+function savasKaybedildi() {
+    savasBitti = true; savasButonlar(false);
+    savasYaz(">> TÜM KARTLARIN ELENDİ!", "hasar");
+    savasYaz(">> KRİTİK BAŞARISIZLIK. BAĞLANTI KESİLDİ.", "hasar");
+    setTimeout(() => {
+        const panel = document.createElement("div");
+        panel.className = "savas-sonu-panel";
+        panel.innerHTML = `
+            <div class="savas-sonu-baslik" style="color:var(--kirmizi-alarm)">YENİLDİN</div>
+            <div class="savas-sonu-altyazi">Tüm kartların elenedi. Orduyu güçlendirip tekrar dene!</div>
+            <button class="btn-savas-kapat" style="background:var(--kirmizi-alarm);color:#fff;" onclick="savasEkraniKapat()">GERİ DÖN</button>`;
+        document.getElementById("savas-ekrani").appendChild(panel);
+    }, 1200);
+}
+
+function savasEkraniKapat() {
+    document.getElementById("savas-ekrani").style.display = "none";
+    // Savaş sonu paneli temizle
+    const panel = document.querySelector(".savas-sonu-panel");
+    if (panel) panel.remove();
+    seciliOrdu = [];
+    arayuzuGuncelle();
+}
 
 window.cikisYap = () => { location.reload(); };
 </script>
